@@ -1,4 +1,5 @@
 #include "DalitzPlotStepFunctionPdf.hh"
+#include <cstdio>
 
 
 EXEC_TARGET fptype device_getHelicityCosine(fptype s12, fptype s13, fptype motherMass, fptype daug1Mass, fptype daug2Mass, fptype daug3Mass)

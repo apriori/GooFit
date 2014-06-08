@@ -71,6 +71,15 @@ private:
 
 }; 
 
+void abortWithCudaPrintFlush (std::string file, int line, std::string reason, const PdfBase* pdf);
+EXEC_TARGET fptype calculateEval (fptype rawPdf, fptype* evtVal, unsigned int par);
+EXEC_TARGET fptype calculateNLL (fptype rawPdf, fptype* evtVal, unsigned int par);
+EXEC_TARGET fptype calculateProb (fptype rawPdf, fptype* evtVal, unsigned int par);
+EXEC_TARGET fptype calculateBinAvg (fptype rawPdf, fptype* evtVal, unsigned int par);
+EXEC_TARGET fptype calculateBinWithError (fptype rawPdf, fptype* evtVal, unsigned int par);
+EXEC_TARGET fptype calculateChisq (fptype rawPdf, fptype* evtVal, unsigned int par);
+EXEC_TARGET fptype callFunction (fptype* eventAddress, unsigned int functionIdx, unsigned int paramIdx);
+void* getMetricPointer (std::string name);
 
 
 #endif

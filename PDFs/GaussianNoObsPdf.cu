@@ -1,5 +1,7 @@
 #include "GaussianNoObsPdf.hh"
 
+#include <cstdio>
+
 __device__ fptype device_GaussianNoObs(fptype* evt, fptype* p, unsigned int* indices) {
   //fptype x = evt[indices[2 + indices[0]]];
   fptype x = p[indices[1]];

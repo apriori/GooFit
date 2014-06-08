@@ -1,5 +1,6 @@
 #include "InterHistPdf.hh"
 #include <algorithm>
+#include <cstdio>
 
 MEM_CONSTANT fptype* dev_base_interhists[100]; // Multiple histograms for the case of multiple PDFs
 #define OBS_CODE 4242424242
