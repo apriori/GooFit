@@ -4,7 +4,7 @@
 #include "NovosibirskPdf.hh"
 #include "BifurGaussPdf.hh" 
 
-#include "TRandom.hh" 
+#include "TRandom.h" 
 #if HAVE_ROOT
 #  include "Variable.hh"
 #  include "TH1F.h"

@@ -69,8 +69,6 @@ gooError gooFree (void* ptr);
 
 #define DOUBLES 1
 
-void abortWithCudaPrintFlush (std::string file, int line, char* message); 
-
 #ifdef DOUBLES
 #define root2 1.4142135623730951
 #define invRootPi 0.5641895835477563

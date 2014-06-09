@@ -4,7 +4,7 @@
 #include "FitManager.hh" 
 #include "UnbinnedDataSet.hh" 
 
-#include "TRandom.hh" 
+#include "TRandom.h" 
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TStyle.h" 

@@ -20,38 +20,6 @@ void printMemoryStatus (std::string file, int line) {
 }
 
 
-#include <execinfo.h>
-void* stackarray[10];
-void abortWithCudaPrintFlush (std::string file, int line, std::string reason, const PdfBase* pdf = 0) {
-#ifdef CUDAPRINT
-  cudaPrintfDisplay(stdout, true);
-  cudaPrintfEnd();
-#endif
-  std::cout << "Abort called from " << file << " line " << line << " due to " << reason << std::endl; 
-  if (pdf) {
-    PdfBase::parCont pars;
-    pdf->getParameters(pars);
-    std::cout << "Parameters of " << pdf->getName() << " : \n";
-    for (PdfBase::parIter v = pars.begin(); v != pars.end(); ++v) {
-      if (0 > (*v)->index) continue; 
-      std::cout << "  " << (*v)->name << " (" << (*v)->index << ") :\t" << host_params[(*v)->index] << std::endl;
-    }
-  }
-
-  std::cout << "Parameters (" << totalParams << ") :\n"; 
-  for (int i = 0; i < totalParams; ++i) {
-    std::cout << host_params[i] << " ";
-  }
-  std::cout << std::endl; 
-
-
-  // get void* pointers for all entries on the stack
-  size_t size = backtrace(stackarray, 10);
-  // print out all the frames to stderr
-  backtrace_symbols_fd(stackarray, size, 2);
-
-  exit(1); 
-}
 
 EXEC_TARGET fptype calculateEval (fptype rawPdf, fptype* evtVal, unsigned int par) {
   // Just return the raw PDF value, for use in (eg) normalisation. 

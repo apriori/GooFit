@@ -118,6 +118,7 @@ private:
   __host__ void setIndices ();
 };
 
+
 // Device-side, translation-unit constrained. 
 extern MEM_CONSTANT fptype cudaArray[maxParams];           // Holds device-side fit parameters. 
 extern MEM_CONSTANT unsigned int paramIndices[maxParams];  // Holds functor-specific indices into cudaArray. Also overloaded to hold integer constants (ie parameters that cannot vary.) 
@@ -140,5 +141,7 @@ extern MEM_DEVICE void* device_function_table[200]; // Not clear why this cannot
 extern void* host_function_table[200];
 extern unsigned int num_device_functions; 
 extern map<void*, int> functionAddressToDeviceIndexMap; 
+
+void abortWithCudaPrintFlush (std::string file, int line, std::string reason, const PdfBase* pdf = 0);
 
 #endif

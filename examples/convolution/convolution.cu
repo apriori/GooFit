@@ -5,7 +5,7 @@
 #include "GaussianPdf.hh" 
 #include "ConvolutionPdf.hh" 
 #include <iostream>
-#include "TRandom.hh" 
+#include "TRandom.h" 
 
 using namespace std; 
 

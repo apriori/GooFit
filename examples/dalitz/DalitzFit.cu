@@ -1,11 +1,11 @@
 // ROOT stuff
-#include "TRandom.hh"
+#include "TRandom.h"
 #include "TCanvas.h" 
 #include "TFile.h" 
 #include "TH1F.h" 
 #include "TH2F.h" 
 #include "TStyle.h" 
-#include "TRandom3.hh" 
+#include "TRandom3.h" 
 #include "TLegend.h" 
 #include "TText.h" 
 #include "TLine.h" 
