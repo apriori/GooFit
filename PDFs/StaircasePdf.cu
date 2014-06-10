@@ -29,7 +29,7 @@ __host__ StaircasePdf::StaircasePdf(std::string n, Variable* _x, const std::vect
   pindices.push_back(x0list.size());
   for(std::vector<Variable*>::const_iterator x0 = x0list.begin(); x0 != x0list.end(); x0++)
     pindices.push_back(registerParameter(*x0));
-  cudaMemcpyFromSymbol((void**) &host_fcn_ptr, ptr_to_Staircase, sizeof(void*));
+  GET_FUNCTION_ADDR(ptr_to_Staircase);
   initialise(pindices);
   std::cout << "StaircasePdf::StaircasePdf(" << n << ", ...)" << std::endl;
 }

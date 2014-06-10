@@ -21,7 +21,7 @@ __host__ GaussianNoObsPdf::GaussianNoObsPdf (std::string n, Variable* _x, Variab
   pindices.push_back(registerParameter(_x));
   pindices.push_back(registerParameter(mean));
   pindices.push_back(registerParameter(sigma));
-  cudaMemcpyFromSymbol((void**) &host_fcn_ptr, ptr_to_GaussianNoObs, sizeof(void*));
+  GET_FUNCTION_ADDR(ptr_to_GaussianNoObs);
   initialise(pindices); 
 }
 

@@ -650,7 +650,7 @@ ResonancePdf::ResonancePdf (string name,
   pindices.push_back(sp);
   pindices.push_back(cyc); 
 
-  cudaMemcpyFromSymbol((void**) &host_fcn_ptr, ptr_to_RBW, sizeof(void*));
+  GET_FUNCTION_ADDR(ptr_to_RBW);
   initialise(pindices); 
 }
 
@@ -683,7 +683,7 @@ ResonancePdf::ResonancePdf (string name,
   pindices.push_back(registerParameter(g_1));
   pindices.push_back(registerParameter(g_KK_over_g_1));
   
-  cudaMemcpyFromSymbol((void**) &host_fcn_ptr, ptr_to_FLATTE, sizeof(void*));
+  GET_FUNCTION_ADDR(ptr_to_FLATTE);
   initialise(pindices); 
 }
 
@@ -721,7 +721,7 @@ ResonancePdf::ResonancePdf (string name,
   pindices.push_back(registerParameter(lass_F));
 
   
-  cudaMemcpyFromSymbol((void**) &host_fcn_ptr, ptr_to_LASS, sizeof(void*));
+  GET_FUNCTION_ADDR(ptr_to_LASS);
   initialise(pindices);
   
   if(sp)
@@ -756,7 +756,7 @@ ResonancePdf::ResonancePdf(std::string name,
   for(std::vector<Variable*>::const_iterator poly_iter = poly_coeffs.begin(); poly_iter != poly_coeffs.end(); poly_iter++)
     pindices.push_back(registerParameter(*poly_iter));
   
-  cudaMemcpyFromSymbol((void**) &host_fcn_ptr, ptr_to_polynomialLASS, sizeof(void*));
+  GET_FUNCTION_ADDR(ptr_to_polynomialLASS);
   initialise(pindices);
   
   if(sp)
@@ -782,7 +782,7 @@ ResonancePdf::ResonancePdf (string name,
   pindices.push_back(sp);
   pindices.push_back(cyc);
 
-  cudaMemcpyFromSymbol((void**) &host_fcn_ptr, ptr_to_GOUSAK, sizeof(void*));
+  GET_FUNCTION_ADDR(ptr_to_GOUSAK);
   initialise(pindices); 
 }
 
@@ -797,7 +797,7 @@ ResonancePdf::ResonancePdf (string name,
   pindices.push_back(0); 
   // Dummy index for constants - won't use it, but calling 
   // functions can't know that and will call setConstantIndex anyway. 
-  cudaMemcpyFromSymbol((void**) &host_fcn_ptr, ptr_to_NONRES, sizeof(void*));
+  GET_FUNCTION_ADDR(ptr_to_NONRES);
   initialise(pindices); 
 }
 
@@ -819,6 +819,6 @@ ResonancePdf::ResonancePdf (string name,
   pindices.push_back(registerParameter(sigma)); 
   pindices.push_back(cyc); 
 
-  cudaMemcpyFromSymbol((void**) &host_fcn_ptr, ptr_to_GAUSSIAN, sizeof(void*));
+  GET_FUNCTION_ADDR(ptr_to_GAUSSIAN);
   initialise(pindices); 	
 }
