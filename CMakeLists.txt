@@ -4,6 +4,7 @@ project(GooFit)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 find_package(CUDA)
 find_package(OpenMP)
+find_package(ROOT COMPONENTS Minuit Minuit2)
 
 #set up module includes
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/PDFs)
@@ -60,6 +61,7 @@ foreach(p LIB BIN INCLUDE CMAKE)
 endforeach()
 
 include_directories(
+    "${ROOT_INCLUDE_DIRS}"
     "${PROJECT_SOURCE_DIR}"   # to find foo/foo.h
     "${PROJECT_BINARY_DIR}")  # to find foo/config.h
 
