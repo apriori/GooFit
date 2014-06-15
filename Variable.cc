@@ -3,13 +3,15 @@
 
 Variable::Variable (std::string n) 
   : Indexable(n) 
-  , numbins(100)
-  , fixed(false)
-  , blind(0)
   , error(0.0)
   , error_pos(0.0)
   , error_neg(0.0)
   , gcc(0.0)
+  , upperlimit(0.0)
+  , lowerlimit(0.0)
+  , numbins(100)
+  , fixed(false)
+  , blind(0)
 {
 } 
 
@@ -19,8 +21,8 @@ Variable::Variable (std::string n, fptype v)
   , error_pos(0.0)
   , error_neg(0.0)
   , gcc(0.0)
-  , lowerlimit(v - 0.01)
   , upperlimit(v + 0.01)
+  , lowerlimit(v - 0.01)
   , numbins(100)
   , fixed(true)
   , blind(0)
@@ -29,15 +31,15 @@ Variable::Variable (std::string n, fptype v)
 
 Variable::Variable (std::string n, fptype dn, fptype up) 
   : Indexable(n)
+  , error(0.0)
+  , error_pos(0.0)
+  , error_neg(0.0)
+  , gcc(0.0)
   , upperlimit(up)
   , lowerlimit(dn)
   , numbins(100)
   , fixed(false)
   , blind(0)
-  , error_pos(0.0)
-  , error_neg(0.0)
-  , gcc(0.0)
-  , error(0.0)
 {
 }
 
