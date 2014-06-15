@@ -21,10 +21,10 @@ EXEC_TARGET void gaussian (fptype& _P1, fptype& _P2, fptype& _P3, fptype& _P4,
   
   fptype _u0       = _1o2SqrtA *_B; 
   fptype _u02      = _u0 *_u0; 
-  fptype _F        = _1oSqrtA * exp( -_C + _u02 ); 
+  fptype _F        = _1oSqrtA * EXP( -_C + _u02 ); 
   
   fptype _Ig0      = SQRTPIo2 * ERFC(_u0); 
-  fptype _Ig1      =  0.5 * exp(-_u02); 
+  fptype _Ig1      =  0.5 * EXP(-_u02); 
   fptype _Ig2      = _Ig1 *_u0 + 0.5 *_Ig0; 
   fptype _Ig3      = _Ig1 * (_u02 + 1);
   
@@ -41,8 +41,8 @@ EXEC_TARGET void gaussian (fptype& _P1, fptype& _P2, fptype& _P3, fptype& _P4,
   
   fptype _u0py = _1o2SqrtA * (_B - ymixing *_Gamma); 
   fptype _u0my = _1o2SqrtA * (_B + ymixing *_Gamma); 
-  fptype _Fpy  = _1oSqrtA * exp( -_C + _u0py * _u0py ); 
-  fptype _Fmy  = _1oSqrtA * exp( -_C + _u0my * _u0my ); 
+  fptype _Fpy  = _1oSqrtA * EXP( -_C + _u0py * _u0py ); 
+  fptype _Fmy  = _1oSqrtA * EXP( -_C + _u0my * _u0my ); 
   fptype _Ipy  = _Fpy * SQRTPIo2 * ERFC(_u0py); 
   fptype _Imy  = _Fmy * SQRTPIo2 * ERFC(_u0my); 
   _P1   = _NormG * 0.5 * (_Ipy + _Imy); 
