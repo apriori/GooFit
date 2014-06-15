@@ -135,25 +135,29 @@ vector<unsigned int> BinnedDataSet::convertValuesToBins (const vector<fptype>& v
   for (unsigned int i = 0; i < vals.size(); ++i) {
     assert(currVar != varsEnd()); 
     double currVal = vals[i]; 
-    if (currVal < (*currVar)->lowerlimit) {
-      std::cout << "Warning: Value " 
-		<< currVal 
-		<< " less than minimum "
-		<< (*currVar)->lowerlimit
-		<< " for "
-		<< (*currVar)->name
-		<< "; clamping to minimum.\n";
-      currVal = (*currVar)->lowerlimit; 
-    }
-    if (currVal > (*currVar)->upperlimit) {
-      std::cout << "Warning: Value " 
-		<< currVal 
-		<< " more than maximum "
-		<< (*currVar)->upperlimit
-		<< " for "
-		<< (*currVar)->name
-		<< "; clamping to maximum.\n";
-      currVal = (*currVar)->upperlimit; 
+
+    //clamp only for fixed variables
+    if ((*currVar)->fixed) {
+      if (currVal < (*currVar)->lowerlimit) {
+        std::cout << "Warning: Value "
+      << currVal
+      << " less than minimum "
+      << (*currVar)->lowerlimit
+      << " for "
+      << (*currVar)->name
+      << "; clamping to minimum.\n";
+        currVal = (*currVar)->lowerlimit;
+      }
+      if (currVal > (*currVar)->upperlimit) {
+        std::cout << "Warning: Value "
+      << currVal
+      << " more than maximum "
+      << (*currVar)->upperlimit
+      << " for "
+      << (*currVar)->name
+      << "; clamping to maximum.\n";
+        currVal = (*currVar)->upperlimit;
+      }
     }
 
     fptype step = (*currVar)->upperlimit;
