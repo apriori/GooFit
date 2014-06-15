@@ -18,6 +18,7 @@ public:
 			  Variable* width, 
 			  unsigned int sp, 
 			  unsigned int cyc);
+  virtual ~ResonancePdf() {}
   
   enum CouplingTreatment { MULTIPLY_BY_NOMINAL_MASS = 0, SQUARE };
   enum WhichMeson { F = 0, A };

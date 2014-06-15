@@ -6,6 +6,7 @@
 class MappedPdf : public GooPdf {
 public:
   MappedPdf (std::string n, GooPdf* m, vector<GooPdf*>& t); 
+  virtual ~MappedPdf() {}
   // Map function m must be custom written to correspond to order of function list t. 
   __host__ fptype normalise () const;
 private:

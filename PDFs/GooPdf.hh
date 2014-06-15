@@ -29,6 +29,8 @@ class GooPdf : public PdfBase {
 public:
 
   GooPdf (Variable* x, std::string n);
+  virtual ~GooPdf();
+
   __host__ virtual double calculateNLL () const;
   __host__ void evaluateAtPoints (std::vector<fptype>& points) const; 
   __host__ void evaluateAtPoints (Variable* var, std::vector<fptype>& res); 

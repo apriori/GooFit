@@ -35,6 +35,7 @@ class PdfBase {
 
 public:
   PdfBase (Variable* x, std::string n); 
+  virtual ~PdfBase() {}
 
   enum Specials {ForceSeparateNorm = 1, ForceCommonNorm = 2}; 
 

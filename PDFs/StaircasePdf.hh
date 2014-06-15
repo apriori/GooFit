@@ -7,6 +7,7 @@
 class StaircasePdf : public GooPdf {
 public:
   StaircasePdf (std::string n, Variable* _x, const std::vector<Variable*> &x0list);
+  virtual ~StaircasePdf() {}
   //__host__ fptype integrate (fptype lo, fptype hi) const;
   //__host__ virtual bool hasAnalyticIntegral () const {return true;}
 private:

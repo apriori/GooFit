@@ -11,7 +11,7 @@ class PdfBase;
 class FitControl {
 public:
   FitControl (bool bin, std::string mn); 
-  ~FitControl (); 
+  virtual ~FitControl ();
 
   inline bool binnedFit () const {return binned;}
   inline bool binErrors () const {return errorsOnBins;} 

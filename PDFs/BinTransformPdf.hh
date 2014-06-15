@@ -7,7 +7,7 @@
 class BinTransformPdf : public GooPdf {
 public:
   BinTransformPdf (std::string n, vector<Variable*> obses, vector<fptype> limits, vector<fptype> binSizes, vector<int> numBins); 
-
+  virtual ~BinTransformPdf() {}
 private:
 
 };

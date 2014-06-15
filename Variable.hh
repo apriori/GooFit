@@ -27,7 +27,7 @@ struct Variable : Indexable {
   Variable (std::string n, fptype dn, fptype up);
   Variable (std::string n, fptype v, fptype dn, fptype up);
   Variable (std::string n, fptype v, fptype e, fptype dn, fptype up);
-  ~Variable (); 
+  virtual ~Variable ();
 
   fptype error, error_pos, error_neg, gcc;
   fptype upperlimit;
@@ -42,7 +42,7 @@ struct Constant : Indexable {
   // to functorConstants instead of cudaArray. 
 
   Constant (std::string n, fptype val) : Indexable(n, val) {}
-  ~Constant () {}
+  virtual ~Constant () {}
 }; 
 
 

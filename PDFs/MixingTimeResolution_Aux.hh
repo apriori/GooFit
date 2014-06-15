@@ -8,7 +8,7 @@ typedef fptype (*device_resfunction_ptr) (fptype, fptype, fptype, fptype, fptype
 class MixingTimeResolution {
 public: 
   MixingTimeResolution (); 
-  ~MixingTimeResolution ();
+  virtual ~MixingTimeResolution ();
 
   void initIndex (void* dev_fcn_ptr = host_fcn_ptr);
 

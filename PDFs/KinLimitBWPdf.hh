@@ -7,6 +7,7 @@ class KinLimitBWPdf : public GooPdf {
 
 public:
   KinLimitBWPdf (std::string n, Variable* _x, Variable* m, Variable* s); 
+  virtual ~KinLimitBWPdf() {}
   __host__ virtual bool hasAnalyticIntegral () const {return false;} 
   __host__ void setMasses (fptype bigM, fptype smallM); 
 

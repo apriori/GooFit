@@ -7,6 +7,7 @@ class BWPdf : public GooPdf {
 
 public:
   BWPdf (std::string n, Variable* _x, Variable* m, Variable* s); 
+  virtual ~BWPdf() {}
 private:
 
 };

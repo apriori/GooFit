@@ -10,6 +10,7 @@ public:
 			  BinnedDataSet* x, 
 			  std::vector<Variable*> params, 
 			  std::vector<Variable*> obses); 
+  virtual ~InterHistPdf() {}
   //__host__ virtual fptype normalise () const;
 
 private:
