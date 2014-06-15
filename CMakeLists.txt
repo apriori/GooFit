@@ -63,6 +63,10 @@ include_directories(
     "${PROJECT_SOURCE_DIR}"   # to find foo/foo.h
     "${PROJECT_BINARY_DIR}")  # to find foo/config.h
 
+if(NOT ${CUDA_FOUND})
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/fakecuda)
+endif()
+
 
 file(GLOB Functors ${CMAKE_CURRENT_SOURCE_DIR}/*.cu ${CMAKE_CURRENT_SOURCE_DIR}/PDFs/*.cu)
 file(GLOB CXXCode ${CMAKE_CURRENT_SOURCE_DIR}/*.hh ${CMAKE_CURRENT_SOURCE_DIR}/*.cc ${CMAKE_CURRENT_SOURCE_DIR}/PDFs/*.hh ${CMAKE_CURRENT_SOURCE_DIR}/PDFs/*.cc)
