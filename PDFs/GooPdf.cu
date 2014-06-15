@@ -100,7 +100,14 @@ GooPdf::GooPdf (Variable* x, std::string n)
   : PdfBase(x, n)
   , logger(0)
 {
-  //std::cout << "Created " << n << std::endl; 
+  //std::cout << "Created " << n << std::endl;
+}
+
+GooPdf::~GooPdf()
+{
+  if (logger) {
+    delete logger;
+  }
 }
 
 __host__ int GooPdf::findFunctionIdx (void* dev_functionPtr) {
