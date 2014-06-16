@@ -178,11 +178,12 @@ int main()
     // Plot the generated data and both fits
     RooPlot* frame = dt.frame(Title("B decay distribution with CPV(Im(l)=0.7,Re(l)=0.7,|l|=1,dG/G=0.5) (B0/B0bar)")) ;
     RooDataHist gpuHist(pdfHist.GetName(), pdfHist.GetTitle(), RooArgSet(*dtClone), Import(pdfHist, kFALSE));
+
     //cpu fit in green
-    data->plotOn(frame, LineColor(kGreen));
+    data->plotOn(frame, LineColor(kGreen), MarkerColor(kGreen), MarkerStyle(kCircle));
     bcpg.plotOn(frame);
     //gpu fit in red
-    gpuHist.plotOn(frame, LineColor(kRed));
+    gpuHist.plotOn(frame, LineColor(kRed), MarkerColor(kRed));
 
     TCanvas* c = new TCanvas("rf708_bphysics","rf708_bphysics",1200,800) ;
     c->cd(1) ; gPad->SetLeftMargin(0.15) ; frame->GetYaxis()->SetTitleOffset(1.6) ; frame->Draw() ;
