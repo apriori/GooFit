@@ -180,8 +180,8 @@ int main()
     RooDataHist gpuHist(pdfHist.GetName(), pdfHist.GetTitle(), RooArgSet(*dtClone), Import(pdfHist, kFALSE));
 
     //cpu fit in green
-    data->plotOn(frame, LineColor(kGreen), MarkerColor(kGreen), MarkerStyle(kCircle));
-    bcpg.plotOn(frame);
+    data->plotOn(frame);
+    bcpg.plotOn(frame, LineColor(kBlue), MarkerColor(kBlue), MarkerStyle(kBlue));
     //gpu fit in red
     gpuHist.plotOn(frame, LineColor(kRed), MarkerColor(kRed));
 
