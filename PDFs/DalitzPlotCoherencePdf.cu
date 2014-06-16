@@ -1,5 +1,6 @@
 #include "DalitzPlotCoherencePdf.hh"
 #include <complex>
+#include <cstdio>
 
 MEM_DEVICE devcomplex<fptype>* device_integrals[10];
 
