@@ -12,15 +12,18 @@ int totalConstants = 1; // First constant is reserved for number of events.
 map<Variable*, std::set<PdfBase*> > variableRegistry; 
 
 PdfBase::PdfBase (Variable* x, std::string n) 
-  : name(n)
-  , numEvents(0)
+  : numEvents(0)
   , numEntries(0)
   , normRanges(0)
+  , parameters(0)
+  , cIndex(0)
   , fitControl(0) 
   , integrationBins(-1) 
   , specialMask(0)
   , cachedParams(0)
   , properlyInitialised(true) // Special-case PDFs should set to false. 
+  , functionIdx(0)
+  , name(n)
 {
   if (x) registerObservable(x);
 }
@@ -53,7 +56,7 @@ __host__ unsigned int PdfBase::registerParameter (Variable* var) {
   parameterList.push_back(var); 
   variableRegistry[var].insert(this); 
   if (0 > var->getIndex()) {
-    unsigned int unusedIndex = 0;
+    int unusedIndex = 0;
     while (true) {
       bool canUse = true;
       for (std::map<Variable*, std::set<PdfBase*> >::iterator p = variableRegistry.begin(); p != variableRegistry.end(); ++p) {

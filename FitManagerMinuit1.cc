@@ -42,7 +42,7 @@ void FitManager::fit(FitAlgorithm algo, Int_t strategy)
 {
   setupMinuit();
   
-  double arglist[] = { strategy };
+  double arglist[] = { static_cast<double>(strategy) };
   int ierflg;
   minuit->mnexcm("SET STR", arglist, 1, ierflg);
 

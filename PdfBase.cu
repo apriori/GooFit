@@ -142,7 +142,7 @@ __host__ void PdfBase::initialiseIndices (std::vector<unsigned int> pindices) {
 
   assert(totalParams + pindices.size() < maxParams); 
   host_indices[totalParams] = pindices.size(); 
-  for (int i = 1; i <= host_indices[totalParams]; ++i) {
+  for (uint i = 1; i <= host_indices[totalParams]; ++i) {
     host_indices[totalParams+i] = pindices[i-1]; 
   }
   host_indices[totalParams + pindices.size() + 1] = observables.size(); 
@@ -236,7 +236,7 @@ __host__ void PdfBase::setData (UnbinnedDataSet* data) {
   numEvents = numEntries; 
   
   fptype* host_array = new fptype[numEntries*dimensions];
-  for (int i = 0; i < numEntries; ++i) {
+  for (uint i = 0; i < numEntries; ++i) {
     for (obsIter v = obsBegin(); v != obsEnd(); ++v) {
       fptype currVal = data->getValue((*v), i);
       host_array[i*dimensions + (*v)->index] = currVal; 

@@ -37,7 +37,7 @@ void readFromFile (PdfBase* pdf, const char* fname) {
   reader.open(fname);
   std::string buffer;
   char discard[1000]; 
-  int numSet = 0; 
+  size_t numSet = 0;
   while (true) {
     reader >> buffer;
     if (reader.eof()) break; 

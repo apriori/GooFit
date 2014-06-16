@@ -113,7 +113,7 @@ void fitRatio (vector<int>& rsEvts, vector<int>& wsEvts, std::string plotName = 
   poly->evaluateAtPoints(decayTime, values); 
   TH1D pdfHist("pdfHist", "", decayTime->numbins, decayTime->lowerlimit, decayTime->upperlimit); 
 
-  for (int i = 0; i < values.size(); ++i) {
+  for (size_t i = 0; i < values.size(); ++i) {
     pdfHist.SetBinContent(i+1, values[i]);
   }
 

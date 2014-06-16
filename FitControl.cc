@@ -2,10 +2,11 @@
 #include "PdfBase.hh" 
 
 FitControl::FitControl (bool bin, std::string mn) 
-  : binned(bin) 
+  : errorsOnBins(false)
+  , binned(bin)
   , metricName(mn)
   , owner(0)
-  , errorsOnBins(false)
+
 {}
 
 FitControl::~FitControl () {} 
