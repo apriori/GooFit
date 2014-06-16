@@ -110,7 +110,11 @@ if(${GOOFIT_BACKEND_OPENMP})
 endif()
 
 
-add_subdirectory(examples)
+if(${CUDA_FOUND})
+	add_subdirectory(examples)
+else()
+	message(WARNING "Deactivating examples since their camke files don't support openmp, yet")
+endif()
 #add_subdirectory(rootstuff)
 
 
