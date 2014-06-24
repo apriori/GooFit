@@ -4,6 +4,7 @@
 
 EXEC_TARGET fptype device_GooBDecay(fptype* evt, fptype* p, unsigned int* indices) {
   fptype t     = evt[indices[2 + indices[0]]]; 
+  fptype tag     = evt[indices[2 + indices[0] + 1]];
   fptype tau  = p[indices[1]];
   fptype dgamma = p[indices[2]];
   fptype f0 = p[indices[3]];
@@ -18,8 +19,8 @@ EXEC_TARGET fptype device_GooBDecay(fptype* evt, fptype* p, unsigned int* indice
   
   return exp(-ft/tau) * (f0 * cosh(dgt) 
                         +f1 * sinh(dgt)
-                        +f2 * cos(dmt)
-                        +f3 * sin(dmt)
+                        -tag * f2 * cos(dmt)
+                        +tag * f3 * sin(dmt)
                         );
 }
 
@@ -28,7 +29,8 @@ MEM_DEVICE device_function_ptr ptr_to_BDecay = device_GooBDecay;
 
 GooBDecayInternal::GooBDecayInternal(
     std::string n,
-    Variable* t, 
+    Variable* dt,
+    Variable* tag,
     Variable* tau, 
     Variable* dgamma,
     Variable* f0,
@@ -37,9 +39,10 @@ GooBDecayInternal::GooBDecayInternal(
     Variable* f3,
     Variable* dm
     )
-  : GooPdf(t, n)
+  : GooPdf(dt, n)
 {
     std::vector<unsigned int> pindices;
+    registerObservable(tag);
     pindices.push_back(registerParameter(tau));
     pindices.push_back(registerParameter(dgamma));
     pindices.push_back(registerParameter(f0));
@@ -52,7 +55,8 @@ GooBDecayInternal::GooBDecayInternal(
 }
 
 GooBDecay::GooBDecay(std::string n,
-                     Variable* t, 
+                     Variable* dt,
+                     Variable* tag,
                      Variable* tau, 
                      Variable* dgamma,
                      Variable* f0,
@@ -63,12 +67,13 @@ GooBDecay::GooBDecay(std::string n,
                      GooPdf* resolution
                      )
     : ConvolutionPdf(n + "_conv_" + resolution->getName(),
-                     t, 
-                     new GooBDecayInternal(n + "_unconv", t, tau, dgamma, f0, f1, f2, f3, dm),
+                     dt,
+                     new GooBDecayInternal(n + "_unconv", dt, tag, tau, dgamma, f0, f1, f2, f3, dm),
                      resolution)
 {
  
 }
+
 
 
 

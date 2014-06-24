@@ -7,7 +7,8 @@
 class GooBDecayInternal : public GooPdf {
 public:
     GooBDecayInternal (std::string n,
-                       Variable* t,
+                       Variable* dt,
+                       Variable* tag,
                        Variable* tau,
                        Variable* dgamma,
                        Variable* f0,
@@ -24,6 +25,7 @@ class GooBDecay : public ConvolutionPdf {
 public:
     GooBDecay (std::string n,
                Variable* dt,
+               Variable* tag,
                Variable* tau,
                Variable* dgamma,
                Variable* f0,
