@@ -1,7 +1,6 @@
 #ifndef PDF_BASE_HH
 #define PDF_BASE_HH
 
-#include "Variable.hh" 
 #include "GlobalCudaDefines.hh" 
 #include "FitControl.hh" 
 #include <set> 
@@ -31,6 +30,7 @@ extern int totalConstants;
 #pragma omp threadprivate (host_callnumber)
 #endif
 
+class Variable;
 class PdfBase {
 
 public:

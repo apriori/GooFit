@@ -4,7 +4,7 @@ project(GooFit)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 find_package(CUDA)
 find_package(OpenMP)
-find_package(ROOT COMPONENTS Minuit Minuit2)
+find_package(ROOT COMPONENTS Minuit Minuit2 Core RooFitCore RooFit)
 
 #set up module includes
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/PDFs)
@@ -112,7 +112,7 @@ endif()
 
 
 if(${CUDA_FOUND})
-	add_subdirectory(examples)
+        #add_subdirectory(examples)
 else()
 	message(WARNING "Deactivating examples since their camke files don't support openmp, yet")
 endif()

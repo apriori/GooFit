@@ -1,3 +1,5 @@
+#include "FitManagerMinuit2.hh"
+
 ROOT::Minuit2::FunctionMinimum* FitManager::fit () {
   host_callnumber = 0; 
   params = new ROOT::Minuit2::MnUserParameters();
@@ -16,7 +18,12 @@ ROOT::Minuit2::FunctionMinimum* FitManager::fit () {
 
   numPars = maxIndex+1; 
   migrad = new ROOT::Minuit2::MnMigrad(*this, *params); 
-  ROOT::Minuit2::FunctionMinimum* ret = new ROOT::Minuit2::FunctionMinimum((*migrad)()); 
+  ROOT::Minuit2::FunctionMinimum* ret = new ROOT::Minuit2::FunctionMinimum((*migrad)());
+
+  if (lastresult != 0) {
+      delete lastresult;
+  }
+  lastresult = ret;
 
   return ret; 
 }
@@ -25,7 +32,7 @@ double FitManager::operator () (const vector<double>& pars) const {
   vector<double> gooPars; // Translates from Minuit indexing to GooFit indexing
   gooPars.resize(numPars); 
   int counter = 0; 
-  for (std::vector<Variable*>::iterator i = vars.begin(); i != vars.end(); ++i) {
+  for (std::vector<Variable*>::const_iterator i = vars.begin(); i != vars.end(); ++i) {
     gooPars[(*i)->index] = pars[counter++]; 
   }
 
@@ -52,5 +59,15 @@ double FitManager::operator () (const vector<double>& pars) const {
 #endif 
 
   return nll; 
+}
+
+void FitManager::getMinuitValues () const {
+  const ROOT::Minuit2::MnUserParameters& params = lastresult->UserParameters();
+
+  for (std::vector<Variable*>::const_iterator i = vars.begin(); i != vars.end(); ++i) {
+      Variable* var = (*i);
+      var->value = params.Value(var->name);
+      var->error = params.Error(var->name);
+  }
 }
 

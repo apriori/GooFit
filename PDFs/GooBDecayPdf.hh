@@ -9,18 +9,19 @@ public:
     GooBDecayInternal (std::string n,
                        Variable* dt,
                        Variable* tag,
+                       Variable* parS,
+                       Variable* parC,
+                       Variable* parOmega,
                        Variable* tau,
                        Variable* dgamma,
                        Variable* f0,
                        Variable* f1,
-                       Variable* f2,
-                       Variable* f3,
                        Variable* dm
                        );
     virtual ~GooBDecayInternal() {}
 };
 
-
+/*
 class GooBDecay : public ConvolutionPdf {
 public:
     GooBDecay (std::string n,
@@ -39,5 +40,6 @@ public:
 
 private:
 };
+*/
 
 #endif

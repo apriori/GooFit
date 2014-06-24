@@ -5,7 +5,7 @@
 #include "GooPdf.hh"
 
 // Glue class that talks to MINUIT
-#define MINUIT_VERSION 1
+#define MINUIT_VERSION 2
 
 #if MINUIT_VERSION == 1
 #include "FitManagerMinuit1.hh"

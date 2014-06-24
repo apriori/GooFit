@@ -8,6 +8,7 @@
 #include "GlobalCudaDefines.hh"
 
 struct Indexable {
+  Indexable (const Indexable& other);
   Indexable (std::string n, fptype val = 0) : name(n), value(val), index(-1) {}
 
   int getIndex () const {return index;}
@@ -16,17 +17,23 @@ struct Indexable {
   int index; 
 };
 
+class RooRealVar;
 struct Variable : Indexable { 
   // Contains information about a parameter allowed
   // to vary in MINUIT, or an observable passed to a
   // data set. The index can refer either to cudaArray
   // or to an event. 
 
+  Variable (const RooRealVar& var);
+  Variable (const Variable& other);
   Variable (std::string n); 
   Variable (std::string n, fptype val); 
   Variable (std::string n, fptype dn, fptype up);
   Variable (std::string n, fptype v, fptype dn, fptype up);
   Variable (std::string n, fptype v, fptype e, fptype dn, fptype up);
+
+  static Variable fromRooRealVar(const RooRealVar& var);
+
   virtual ~Variable ();
 
   fptype error, error_pos, error_neg, gcc;
