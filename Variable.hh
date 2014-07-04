@@ -26,6 +26,8 @@ struct Variable : Indexable {
   // data set. The index can refer either to cudaArray
   // or to an event. 
 
+  static Variable fromRooRealVar(const RooRealVar& var);
+
   Variable (const RooRealVar& var);
   Variable (const Variable& other);
   Variable (std::string n); 
