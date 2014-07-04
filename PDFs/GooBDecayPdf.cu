@@ -1,27 +1,28 @@
 #include "GooBDecayPdf.hh"
 
-#include "ConvolutionPdf.hh"
+//#include "ConvolutionPdf.hh"
+#include <cstdio>
 
 EXEC_TARGET fptype device_GooBDecay(fptype* evt, fptype* p, unsigned int* indices) {
-  fptype t     = evt[indices[2 + indices[0]]]; 
-  fptype tag     = evt[indices[2 + indices[0] + 1]];
-  fptype parS = p[indices[1]];
-  fptype parC = p[indices[2]];
+  fptype t        = evt[indices[2 + indices[0]]];
+  fptype tag      = evt[indices[2 + indices[0] + 1]];
+  fptype parS     = p[indices[1]];
+  fptype parC     = p[indices[2]];
   fptype parOmega = p[indices[3]];
-  fptype tau  = p[indices[4]];
-  fptype dgamma = p[indices[5]];
-  fptype f0 = p[indices[6]];
-  fptype f1 = p[indices[7]];
-  fptype dm = p[indices[8]];
+  fptype tau      = p[indices[4]];
+  fptype dgamma   = p[indices[5]];
+  fptype f0       = p[indices[6]];
+  fptype f1       = p[indices[7]];
+  fptype dm       = p[indices[8]];
 
   fptype dgt = dgamma * t /2;
   fptype dmt = dm * t;
-  fptype ft = FABS(t);
   fptype coeffBase = tag * (1. - 2. * parOmega);
   fptype f2 = -coeffBase * parC;
   fptype f3 = coeffBase * parS;
-  
-  return exp(-ft/tau) * (f0 * cosh(dgt) 
+  fptype ft = FABS(t);
+
+  return exp(-ft/tau) * (f0 * cosh(dgt)
                         +f1 * sinh(dgt)
                         +f2 * cos(dmt)
                         +f3 * sin(dmt)
@@ -44,7 +45,16 @@ GooBDecayInternal::GooBDecayInternal(std::string n,
     Variable* dm
     )
   : GooPdf(dt, n)
-{
+  , dt(dt)
+  , tag(tag)
+  , parS(parS)
+  , parC(parC)
+  , parOmega(parOmega)
+  , tau(tau)
+  , f0(f0)
+  , f1(f1)
+  , dm(dm) {
+    tag->fixed = true;
     registerObservable(tag);
 
     std::vector<unsigned int> pindices;
@@ -57,7 +67,81 @@ GooBDecayInternal::GooBDecayInternal(std::string n,
     pindices.push_back(registerParameter(f1));
     pindices.push_back(registerParameter(dm));
     GET_FUNCTION_ADDR(ptr_to_BDecay);
-    initialise(pindices); 
+    initialise(pindices);
+}
+
+__host__ fptype bdecayNorm(fptype t,
+                           fptype tag,
+                           fptype parS,
+                           fptype parC,
+                           fptype parOmega,
+                           fptype tau,
+                           fptype f0,
+                           fptype f1,
+                           fptype dm) {
+  fptype dmt = dm * t;
+  fptype coeffBase = tag * (1. - 2. * parOmega);
+  fptype f2 = -coeffBase * parC;
+  fptype f3 = coeffBase * parS;
+
+  fptype inv_coeff = (-tau)/(1 + dmt*dmt * tau * tau);
+  fptype expPart = exp(-t/tau);
+  fptype cosdmt = cos(dmt);
+  fptype sindmt = sin(dmt);
+  fptype dmttau = dmt * tau;
+
+  fptype expIntCoeff = -tau;
+  fptype sinIntCoeff = f3 * inv_coeff * (sindmt + dmttau * cosdmt);
+  fptype cosIntCoeff = f2 * inv_coeff * (cosdmt - dmttau * sindmt);
+  return expPart * (expIntCoeff + sinIntCoeff + cosIntCoeff);
+}
+
+fptype GooBDecayInternal::integrate(fptype lo, fptype hi) const {
+  unsigned int* indices = host_indices + parameters;
+  fptype hiInt = bdecayNorm(hi,
+                    1,
+                    host_params[indices[1]],
+                    host_params[indices[2]],
+                    host_params[indices[3]],
+                    host_params[indices[4]],
+                    host_params[indices[6]],
+                    host_params[indices[7]],
+                    host_params[indices[8]]
+                    );
+  fptype loInt = bdecayNorm(lo,
+                    1,
+                    host_params[indices[1]],
+                    host_params[indices[2]],
+                    host_params[indices[3]],
+                    host_params[indices[4]],
+                    host_params[indices[6]],
+                    host_params[indices[7]],
+                    host_params[indices[8]]
+                    );
+  fptype hiInt2 = bdecayNorm(hi,
+                    -1,
+                     host_params[indices[1]],
+                     host_params[indices[2]],
+                     host_params[indices[3]],
+                     host_params[indices[4]],
+                     host_params[indices[6]],
+                     host_params[indices[7]],
+                     host_params[indices[8]]
+                    );
+  fptype loInt2 = bdecayNorm(lo,
+                    -1,
+                   host_params[indices[1]],
+                   host_params[indices[2]],
+                   host_params[indices[3]],
+                   host_params[indices[4]],
+                   host_params[indices[6]],
+                   host_params[indices[7]],
+                   host_params[indices[8]]
+                    );
+  //return hiInt2 + hiInt - loInt - loInt2;
+  fptype ttau = host_params[indices[4]];
+  return 2*-ttau * (exp(-hi/ttau) - exp(-lo/ttau));
+  //return hiInt - loInt;
 }
 
 /*

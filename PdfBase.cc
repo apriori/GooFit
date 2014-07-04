@@ -129,6 +129,13 @@ void PdfBase::registerObservable (Variable* obs) {
   observables.push_back(obs);
 }
 
+void PdfBase::registerObservable (SetVariable* obs) {
+  registerObservable(static_cast<Variable*>(obs));
+  if (!obs) return;
+  if (find(discreteObservables.begin(), discreteObservables.end(), obs) != discreteObservables.end()) return;
+  discreteObservables.push_back(obs);
+}
+
 __host__ void PdfBase::setIntegrationFineness (int i) {
   integrationBins = i;
   generateNormRange(); 

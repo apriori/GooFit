@@ -2,6 +2,7 @@
 #include "GooPdf.hh" 
 #include "thrust/sequence.h" 
 #include "thrust/iterator/constant_iterator.h" 
+#include "thrust/system_error.h"
 #include <fstream> 
 
 
@@ -338,6 +339,7 @@ __host__ fptype GooPdf::normalise () const {
   if (hasAnalyticIntegral()) {
     for (obsConstIter v = obsCBegin(); v != obsCEnd(); ++v) { // Loop goes only over observables of this PDF. 
       //if (cpuDebug & 1) std::cout << "Analytically integrating " << getName() << " over " << (*v)->name << std::endl; 
+      if ((*v)->isCategoryConstant) continue;
       ret *= integrate((*v)->lowerlimit, (*v)->upperlimit);
     }
     host_normalisation[parameters] = 1.0/ret;
@@ -347,6 +349,7 @@ __host__ fptype GooPdf::normalise () const {
 
   int totalBins = 1; 
   for (obsConstIter v = obsCBegin(); v != obsCEnd(); ++v) {
+    if ((*v)->isDiscrete) continue;
     ret *= ((*v)->upperlimit - (*v)->lowerlimit);
     totalBins *= (integrationBins > 0 ? integrationBins : (*v)->numbins); 
     //if (cpuDebug & 1) std::cout << "Total bins " << totalBins << " due to " << (*v)->name << " " << integrationBins << " " << (*v)->numbins << std::endl; 

@@ -9,6 +9,7 @@ ROOT::Minuit2::FunctionMinimum* FitManager::fit () {
   numPars = vars.size();
   int maxIndex = 0;
   for (std::vector<Variable*>::iterator i = vars.begin(); i != vars.end(); ++i) {
+    if ((*i)->isCategoryConstant) continue;
     if ((*i)->lowerlimit == (*i)->upperlimit) params->Add((*i)->name, (*i)->value, (*i)->error); 
     else params->Add((*i)->name, (*i)->value, (*i)->error, (*i)->lowerlimit, (*i)->upperlimit); 
     if ((*i)->fixed) params->Fix(params->Index((*i)->name)); 

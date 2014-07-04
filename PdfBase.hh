@@ -71,7 +71,8 @@ public:
   __host__ unsigned int registerConstants (unsigned int amount); 
   __host__ virtual void recursiveSetNormalisation (fptype norm = 1) const;
   __host__ void unregisterParameter (Variable* var);
-  __host__ void registerObservable (Variable* obs); 
+  __host__ void registerObservable (Variable* obs);
+  __host__ void registerObservable (SetVariable* obs);
   __host__ void setIntegrationFineness (int i); 
   __host__ void printProfileInfo (bool topLevel = true);
   __host__ const std::vector<const PdfBase*> getComponents() const
@@ -101,8 +102,9 @@ protected:
   fptype* normRanges;       // This is specific to functor instead of variable so that MetricTaker::operator needn't use indices. 
   unsigned int parameters;  // Stores index, in 'paramIndices', where this functor's information begins. 
   unsigned int cIndex;      // Stores location of constants. 
-  obsCont observables; 
-  parCont parameterList; 
+  obsCont observables;
+  obsCont discreteObservables;
+  parCont parameterList;
   FitControl* fitControl; 
   std::vector<PdfBase*> components;
   int integrationBins; 

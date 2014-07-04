@@ -137,7 +137,7 @@ vector<unsigned int> BinnedDataSet::convertValuesToBins (const vector<fptype>& v
     double currVal = vals[i]; 
 
     //clamp only for fixed variables
-    if ((*currVar)->fixed) {
+    if ((*currVar)->fixed && !(*currVar)->isCategoryConstant) {
       if (currVal < (*currVar)->lowerlimit) {
         std::cout << "Warning: Value "
       << currVal

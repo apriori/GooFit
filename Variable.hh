@@ -6,6 +6,8 @@
 #include <iostream> 
 #include <cassert> 
 #include "GlobalCudaDefines.hh"
+#include <set>
+
 
 struct Indexable {
   Indexable (const Indexable& other);
@@ -31,8 +33,11 @@ struct Variable : Indexable {
   Variable (std::string n, fptype dn, fptype up);
   Variable (std::string n, fptype v, fptype dn, fptype up);
   Variable (std::string n, fptype v, fptype e, fptype dn, fptype up);
+  template<typename valueIter>
+  valueIter begin();
 
-  static Variable fromRooRealVar(const RooRealVar& var);
+  template<typename valueIter>
+  valueIter end();
 
   virtual ~Variable ();
 
@@ -40,9 +45,12 @@ struct Variable : Indexable {
   fptype upperlimit;
   fptype lowerlimit;
   int numbins; 
-  bool fixed; 
+  bool fixed;
+  bool isCategoryConstant;
+  bool isDiscrete;
   fptype blind; 
 }; 
+
 
 struct Constant : Indexable { 
   // This is similar to Variable, but the index points
@@ -52,5 +60,17 @@ struct Constant : Indexable {
   virtual ~Constant () {}
 }; 
 
+class RooCategory;
+struct SetVariable : Variable {
+  SetVariable (const SetVariable& other);
+  SetVariable (const RooCategory& category);
+  std::map<fptype, std::string> valueMap;
+
+  template<typename valueIter>
+  valueIter begin() { return valueMap.begin(); }
+  template<typename valueIter>
+  valueIter end() { return valueMap.end(); }
+  void addEntry(const std::string& name, fptype value);
+};
 
 #endif
