@@ -3,7 +3,7 @@ project(GooFit)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 find_package(CUDA)
-find_package(OpenMP)
+find_package(OpenMP QUIET)
 find_package(ROOT COMPONENTS Minuit Minuit2 Core RooFitCore RooFit)
 
 #set up module includes
@@ -83,8 +83,19 @@ LIST(REMOVE_ITEM CXXCode
     ${CMAKE_CURRENT_SOURCE_DIR}/FitManagerMinuit3.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/GenVoigtian.cc)
 
+if(${APPLE})
+  MESSAGE( STATUS "Building for Mac OS X, switching on C++11 flags for Mac OS X/clang" )
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libstdc++ -pedantic -Wall -Wextra -ftemplate-depth=1024")
+  SET(CMAKE_CXX_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc)
+  SET(CMAKE_C_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc)
+endif(${APPLE})
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  MESSAGE( STATUS "Building for Linux, switching off C++11 flags for Linux/gcc" )
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -pedantic -Wall -Wextra")
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+
 #flag magic
-set(ADDITIONAL_CXXFLAGS "${OpenMP_CXX_FLAGS} -DHAVE_ROOT=1 -Wall")
+set(ADDITIONAL_CXXFLAGS "${OpenMP_CXX_FLAGS} -DHAVE_ROOT=1")
 set(CMAKE_CXX_FLAGS ${ADDITIONAL_CXXFLAGS})
 
 message(STATUS "ADDITIONAL FLAGS ${ADDITIONAL_CXXFALGS}")
@@ -93,10 +104,9 @@ message(STATUS "FLAG DEBUG ${CMAKE_CXX_FLAGS_DEBUG}")
 message(STATUS "FLAG RELEASE ${CMAKE_CXX_FLAGS_RELEASE}")
 
 if(${GOOFIT_BACKEND_CUDA})
-    set(CUDA_ARCH_FLAGS -arch=sm_20)
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};${CUDA_ARCH_FLAGS};-Xcompiler -fpic)
+    set(CUDA_ARCH_FLAGS "-arch=sm_20")
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};${CUDA_ARCH_FLAGS})
     set(CUDA_SEPARABLE_COMPILATION ON)
-    set(CUDA_HOST_COMPILER g++)
 
     cuda_add_library(GooFit SHARED ${CXXCode} ${Functors})
 endif()
@@ -110,6 +120,13 @@ if(${GOOFIT_BACKEND_OPENMP})
     add_library(GooFit SHARED ${CXXCode} ${Functors})
 endif()
 
+STRING(REGEX REPLACE "-fPIC" "" CMAKE_SHARED_LIBRARY_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_CXX_FLAGS}")
+message(STATUS "before new replace ${CMAKE_SHARED_LIBRARY_CXX_FLAGS}")
+STRING(REGEX REPLACE "-dynamiclib" "--shared" CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}")
+message(STATUS "cmake ld flags ${CMAKE_SHARED_LINKER_FLAGS}")
+
+message(STATUS "will link also against ${ROOT_LIBRARIES} ${ROOFIT_LIBRARIES}")
+target_link_libraries(GooFit ${ROOT_LIBRARIES} -lc++ ${ROOFIT_LIBRARIES})
 
 if(${CUDA_FOUND})
         #add_subdirectory(examples)
