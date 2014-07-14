@@ -22,10 +22,15 @@ EXEC_TARGET fptype device_GooBDecay(fptype* evt, fptype* p, unsigned int* indice
   fptype f3 = coeffBase * parS;
   fptype ft = FABS(t);
 
-  return exp(-ft/tau) * (f0 * cosh(dgt)
-                        +f1 * sinh(dgt)
-                        +f2 * cos(dmt)
-                        +f3 * sin(dmt)
+  fptype cosh_ = COSH(dgt);
+  fptype sinh_ = SINH(dgt);
+  fptype cos_ = COS(dmt);
+  fptype sin_ = SIN(dmt);
+
+  return exp(-ft/tau) * (f0 * cosh_
+                        +f1 * sinh_
+                        +f2 * cos_
+                        +f3 * sin_
                         );
 }
 
@@ -44,16 +49,7 @@ GooBDecayInternal::GooBDecayInternal(std::string n,
     Variable* f1,
     Variable* dm
     )
-  : GooPdf(dt, n)
-  , dt(dt)
-  , tag(tag)
-  , parS(parS)
-  , parC(parC)
-  , parOmega(parOmega)
-  , tau(tau)
-  , f0(f0)
-  , f1(f1)
-  , dm(dm) {
+  : GooPdf(dt, n) {
     tag->fixed = true;
     registerObservable(tag);
 
@@ -97,6 +93,7 @@ __host__ fptype bdecayNorm(fptype t,
 }
 
 fptype GooBDecayInternal::integrate(fptype lo, fptype hi) const {
+  lo = std::max(lo, 0.0);
   unsigned int* indices = host_indices + parameters;
   fptype hiInt = bdecayNorm(hi,
                     1,
@@ -138,9 +135,9 @@ fptype GooBDecayInternal::integrate(fptype lo, fptype hi) const {
                    host_params[indices[7]],
                    host_params[indices[8]]
                     );
-  //return hiInt2 + hiInt - loInt - loInt2;
-  fptype ttau = host_params[indices[4]];
-  return 2*-ttau * (exp(-hi/ttau) - exp(-lo/ttau));
+  return hiInt2 + hiInt - loInt - loInt2;
+  //fptype ttau = host_params[indices[4]];
+  //return 2*-ttau * (exp(-hi/ttau) - exp(-lo/ttau));
   //return hiInt - loInt;
 }
 
