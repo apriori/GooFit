@@ -5,7 +5,7 @@
 #include "GlobalCudaDefines.hh"
 #include <vector> 
 #include <set> 
-#include <string> 
+#include <cstring>
 
 typedef std::vector<Variable*>::const_iterator varConstIt; 
 typedef std::vector<Variable*>::const_reverse_iterator varConstRIt; 

@@ -30,7 +30,7 @@ extern int totalConstants;
 #pragma omp threadprivate (host_callnumber)
 #endif
 
-class Variable;
+struct Variable;
 class PdfBase {
 
 public:
@@ -57,6 +57,7 @@ public:
   __host__ void generateNormRange (); 
   __host__ std::string getName () const {return name;} 
   __host__ virtual void getObservables (obsCont& ret) const; 
+  __host__ virtual PdfBase::parCont getParameters () const;
   __host__ virtual void getParameters (parCont& ret) const;
   __host__ Variable* getParameterByName (string n) const; 
   __host__ int getSpecialMask () const {return specialMask;}
