@@ -4,7 +4,7 @@ project(GooFit)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 find_package(CUDA)
 find_package(OpenMP)
-find_package(ROOT COMPONENTS Minuit Minuit2 Core RooFitCore RooFit)
+find_package(ROOT REQUIRED COMPONENTS RooFitCore RooFit Hist Minuit Minuit2 MathCore Graf Graf3d Gpad)
 
 #set up module includes
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/PDFs)
@@ -34,7 +34,7 @@ if(${GOOFIT_THRUST_BACKEND} MATCHES "OPENMP")
     if(${OPENMP_FOUND})
         set(GOOFIT_BACKEND_OPENMP ON)
     else()
-        message(FATAL_ERROR "Backend \"OPENMP\" was selected but OpenMP installation could not be found")
+        #message(FATAL_ERROR "Backend \"OPENMP\" was selected but OpenMP installation could not be found")
     endif()
 endif()
 
@@ -71,7 +71,7 @@ endif()
 
 
 file(GLOB Functors ${CMAKE_CURRENT_SOURCE_DIR}/*.cu ${CMAKE_CURRENT_SOURCE_DIR}/PDFs/*.cu)
-file(GLOB CXXCode ${CMAKE_CURRENT_SOURCE_DIR}/*.hh ${CMAKE_CURRENT_SOURCE_DIR}/*.cc ${CMAKE_CURRENT_SOURCE_DIR}/PDFs/*.hh ${CMAKE_CURRENT_SOURCE_DIR}/PDFs/*.cc)
+file(GLOB CXXCode  ${CMAKE_CURRENT_SOURCE_DIR}/*.cc ${CMAKE_CURRENT_SOURCE_DIR}/PDFs/*.cc)
 
 #filter out MINUIT version dependant .cc/.hh
 LIST(REMOVE_ITEM CXXCode
@@ -83,21 +83,41 @@ LIST(REMOVE_ITEM CXXCode
     ${CMAKE_CURRENT_SOURCE_DIR}/FitManagerMinuit3.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/GenVoigtian.cc)
 
-#flag magic
-set(ADDITIONAL_CXXFLAGS "${OpenMP_CXX_FLAGS} -DHAVE_ROOT=1 -Wall")
-set(CMAKE_CXX_FLAGS ${ADDITIONAL_CXXFLAGS})
+if(${APPLE})
+   set(MACOSX_RPATH ON)
+   message( STATUS "Building for Mac OS X, selecting c++0x with stdlib stdc++ Mac OS X/clang" )
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -stdlib=libstdc++ -pedantic -Wall -Wextra -fPIC -Wno-unused-parameter")
+   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-Xcompiler -stdlib=libstdc++)
+   set(CMAKE_EXE_LINKER_FLAGS "-stdlib=libstdc++ -std=c++0x")
 
-message(STATUS "ADDITIONAL FLAGS ${ADDITIONAL_CXXFALGS}")
+   if(${GOOFIT_BACKEND_CUDA})
+       set(CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+   endif()
+ endif(${APPLE})
+ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+   message( STATUS "Building for Linux, switching off C++11 flags for Linux/gcc" )
+   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra")
+ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+
+#flag magic
+set(ADDITIONAL_CXXFLAGS "${OpenMP_CXX_FLAGS} -DHAVE_ROOT=1")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ADDITIONAL_CXXFLAGS}")
+
+message(STATUS "ADDITIONAL FLAGS ${ADDITIONAL_CXXFLAGS}")
 message(STATUS "FLAG NORMAL ${CMAKE_CXX_FLAGS}")
 message(STATUS "FLAG DEBUG ${CMAKE_CXX_FLAGS_DEBUG}")
 message(STATUS "FLAG RELEASE ${CMAKE_CXX_FLAGS_RELEASE}")
 
 if(${GOOFIT_BACKEND_CUDA})
     set(CUDA_ARCH_FLAGS -arch=sm_20)
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};${CUDA_ARCH_FLAGS};-Xcompiler -fpic)
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};${CUDA_ARCH_FLAGS};-Xcompiler -fpic;-Xcompiler -fopenmp;-Xcompiler -std=c++0x)
     set(CUDA_SEPARABLE_COMPILATION ON)
-    set(CUDA_HOST_COMPILER g++)
 
+    if(${APPLE} AND NOT ${GOOFIT_BACKEND_OPENMP})
+        set_source_files_properties(${CXXCode}
+                                    PROPERTIES
+                                    LANGUAGE CUDA)
+    endif()
     cuda_add_library(GooFit SHARED ${CXXCode} ${Functors})
 endif()
 
@@ -106,10 +126,11 @@ if(${GOOFIT_BACKEND_OPENMP})
                                 PROPERTIES
                                 LANGUAGE CXX
                                 COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -x c++")
-    add_definitions(-fno-inline -DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_BACKEND_OMP)
+    add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_BACKEND_OMP)
     add_library(GooFit SHARED ${CXXCode} ${Functors})
 endif()
 
+target_link_libraries(GooFit ${ROOT_LIBRARIES} ${ROOFIT_LIBRARIES})
 
 if(${CUDA_FOUND})
         #add_subdirectory(examples)

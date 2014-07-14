@@ -1195,7 +1195,10 @@ macro(CUDA_WRAP_SRCS cuda_target format generated_files)
   foreach(file ${ARGN})
     # Ignore any file marked as a HEADER_FILE_ONLY
     get_source_file_property(_is_header ${file} HEADER_FILE_ONLY)
-    if(${file} MATCHES "\\.cu$" AND NOT _is_header)
+    # allow marking of files with the LANGUAGE CUDA propery
+    get_source_file_property(_language_property ${file} LANGUAGE)
+
+    if((${file} MATCHES "\\.cu$" OR ${_language_property} MATCHES "CUDA") AND NOT _is_header)
 
       # Allow per source file overrides of the format.
       get_source_file_property(_cuda_source_format ${file} CUDA_SOURCE_PROPERTY_FORMAT)
@@ -1363,7 +1366,6 @@ macro(CUDA_WRAP_SRCS cuda_target format generated_files)
       list(APPEND CUDA_ADDITIONAL_CLEAN_FILES "${cmake_dependency_file}")
       list(REMOVE_DUPLICATES CUDA_ADDITIONAL_CLEAN_FILES)
       set(CUDA_ADDITIONAL_CLEAN_FILES ${CUDA_ADDITIONAL_CLEAN_FILES} CACHE INTERNAL "List of intermediate files that are part of the cuda dependency scanning.")
-
     endif()
   endforeach()
 
