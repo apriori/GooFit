@@ -85,6 +85,12 @@ __host__ void PdfBase::unregisterParameter (Variable* var) {
   }
 }
 
+__host__ PdfBase::parCont PdfBase::getParameters () const {
+  PdfBase::parCont result;
+  getParameters(result);
+  return result;
+}
+
 __host__ void PdfBase::getParameters (parCont& ret) const { 
   for (parConstIter p = parameterList.begin(); p != parameterList.end(); ++p) {
     if (std::find(ret.begin(), ret.end(), (*p)) != ret.end()) continue; 
