@@ -49,10 +49,13 @@ endif()
 message(STATUS "Building GooFit using ${GOOFIT_THRUST_BACKEND} backend")
 
 set(CXX_STD "-std=c++11")
+set(CXX_STDLIB "")
+set(NVCC_STDLIB "")
 if(${APPLE})
     set(MACOSX_RPATH ON)
-    #set(CXX_STD "-std=c++0x")
-    message(STATUS "Building for Mac OS X, selecting c++11 with stdlib stdc++ Mac OS X/clang")
+    set(CXX_STDLIB "-stdlib=libstdc++")
+    set(NVCC_STDLIB -Xcompiler -stdlib=libstdc++)
+    message(STATUS "Building for Mac OS X, selecting c++11 with stdlib stdc++")
 
     if(${GOOFIT_BACKEND_CUDA})
        set(CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
@@ -60,12 +63,13 @@ if(${APPLE})
 endif(${APPLE})
 
  if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-   message( STATUS "Building for Linux, switching off C++11 flags for Linux/gcc" )
+   message( STATUS "Building for Linux, selecting c++11" )
  endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++ ${CXX_STD} -pedantic -Wall -Wextra -fPIC -Wno-unused-parameter")
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-Xcompiler -stdlib=libstdc++)
-set(CMAKE_EXE_LINKER_FLAGS "-stdlib=libstdc++ ${CXX_STD}")
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};${NVCC_STDLIB})
+set(CMAKE_EXE_LINKER_FLAGS "${CXX_STDLIB} ${CXX_STD}")
+
 
 
 set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH
