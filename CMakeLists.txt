@@ -66,7 +66,7 @@ endif(${APPLE})
    message( STATUS "Building for Linux, selecting c++11" )
  endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++ ${CXX_STD} -pedantic -Wall -Wextra -fPIC -Wno-unused-parameter")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_STD} -pedantic -Wall -Wextra -fPIC -Wno-unused-parameter")
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};${NVCC_STDLIB})
 set(CMAKE_EXE_LINKER_FLAGS "${CXX_STDLIB} ${CXX_STD}")
 
