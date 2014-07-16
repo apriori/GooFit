@@ -135,9 +135,9 @@ fptype GooBDecayInternal::integrate(fptype lo, fptype hi) const {
                    host_params[indices[7]],
                    host_params[indices[8]]
                     );
-  return hiInt2 + hiInt - loInt - loInt2;
-  //fptype ttau = host_params[indices[4]];
-  //return 2*-ttau * (exp(-hi/ttau) - exp(-lo/ttau));
+  //return hiInt2 + hiInt - loInt - loInt2;
+  fptype ttau = host_params[indices[4]];
+  return 2*-ttau * (exp(-hi/ttau) - exp(-lo/ttau));
   //return hiInt - loInt;
 }
 
