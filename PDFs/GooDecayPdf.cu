@@ -3,8 +3,9 @@
 EXEC_TARGET fptype device_GooDecay (fptype* evt, fptype* p, unsigned int* indices) {
   fptype t = evt[indices[2 + indices[0]]]; 
   fptype tau = p[indices[1]];
+  fptype ft = FABS(t);
 
-  fptype ret = EXP(-t/tau); 
+  fptype ret = EXP(-ft/tau);
   return ret; 
 }
 
@@ -20,7 +21,9 @@ __host__ GooDecayPdf::GooDecayPdf (std::string n, Variable* _t, Variable* tau)
 }
 
 __host__ fptype GooDecayPdf::integrate (fptype lo, fptype hi) const {
-  fptype tau = host_params[host_indices[parameters + 1]]; 
+  lo = std::max(lo, 0.0);
+  unsigned int* indices = host_indices + parameters;
+  fptype tau = host_params[indices[1]];
   return -tau * (EXP(-hi/tau) - EXP(-lo/tau));
 }
 
