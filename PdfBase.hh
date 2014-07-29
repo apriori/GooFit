@@ -5,7 +5,8 @@
 #include "FitControl.hh" 
 #include <set> 
 #include "BinnedDataSet.hh" 
-#include "UnbinnedDataSet.hh" 
+#include "UnbinnedDataSet.hh"
+#include "VariableCartesianProduct.hh"
 
 #include <thrust/iterator/constant_iterator.h> 
 #include <thrust/device_vector.h>
@@ -46,6 +47,10 @@ public:
   typedef std::vector<Variable*> obsCont;
   typedef obsCont::iterator obsIter;
   typedef obsCont::const_iterator obsConstIter;
+  typedef std::vector<SetVariable*> SetObsCont;
+  typedef obsCont::iterator SetObsIter;
+  typedef obsCont::const_iterator SetObsConstIter;
+
   typedef std::vector<Variable*> parCont; 
   typedef parCont::iterator parIter; 
   typedef parCont::const_iterator parConstIter; 
@@ -83,7 +88,6 @@ public:
       tmp.push_back(*i);
     return tmp;
   }
-
   __host__ bool parametersChanged (fptype *cache) const; 
   __host__ fptype* storeParameters (fptype *cache) const;
   __host__ bool parametersChanged() const;
@@ -98,13 +102,16 @@ public:
   void clearCurrentFit (); 
 
 protected:
+  __host__ void initializeSetVarProduct();
+
+  VariableValuesSet setVariableProduct;
   fptype numEvents;         // Non-integer to allow weighted events
   unsigned int numEntries;  // Eg number of bins - not always the same as number of events, although it can be. 
   fptype* normRanges;       // This is specific to functor instead of variable so that MetricTaker::operator needn't use indices. 
   unsigned int parameters;  // Stores index, in 'paramIndices', where this functor's information begins. 
   unsigned int cIndex;      // Stores location of constants. 
   obsCont observables;
-  obsCont discreteObservables;
+  SetObsCont discreteObservables;
   parCont parameterList;
   FitControl* fitControl; 
   std::vector<PdfBase*> components;

@@ -137,13 +137,23 @@ Variable Variable::fromRooRealVar(const RooRealVar& var) {
   return Variable(var.GetName(), var.getVal(), var.getMin(), var.getMax());
 }
 
+SetVariable::SetVariable(const std::string& name)
+  : Variable(name) {
+
+  isCategoryConstant = true;
+  isDiscrete = true;
+  numbins = 1;
+}
+
 SetVariable::SetVariable(const SetVariable &other)
-  : Variable(other) {
+  : Variable(other)
+  , valueMap(other.valueMap) {
 
 }
 
 SetVariable::SetVariable(const RooCategory& category)
   : Variable(category.GetName()) {
+
   value = category.getIndex();
   isCategoryConstant = true;
   isDiscrete = true;
@@ -160,5 +170,5 @@ SetVariable::SetVariable(const RooCategory& category)
 }
 
 void SetVariable::addEntry(const std::string& name, fptype value) {
-  valueMap.insert(std::pair<fptype, std::string>(value, name));
+  valueMap[value] = name;
 }

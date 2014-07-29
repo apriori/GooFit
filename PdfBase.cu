@@ -162,7 +162,8 @@ __host__ void PdfBase::initialiseIndices (std::vector<unsigned int> pindices) {
 	    << paramIndices << " "
 	    << std::endl; 
   */
-  MEMCPY_TO_SYMBOL(paramIndices, host_indices, totalParams*sizeof(unsigned int), 0, cudaMemcpyHostToDevice); 
+  MEMCPY_TO_SYMBOL(paramIndices, host_indices, totalParams*sizeof(unsigned int), 0, cudaMemcpyHostToDevice);
+  initializeSetVarProduct();
 }
 
 __host__ void PdfBase::setData (std::vector<std::map<Variable*, fptype> >& data) {
@@ -303,7 +304,7 @@ __host__ void PdfBase::generateNormRange () {
 void PdfBase::clearCurrentFit () {
   totalParams = 0; 
   gooFree(dev_event_array);
-  dev_event_array = 0; 
+  dev_event_array = 0;
 }
 
 __host__ void PdfBase::printProfileInfo (bool topLevel) {

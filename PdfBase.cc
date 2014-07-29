@@ -136,10 +136,10 @@ void PdfBase::registerObservable (Variable* obs) {
 }
 
 void PdfBase::registerObservable (SetVariable* obs) {
-  registerObservable(static_cast<Variable*>(obs));
   if (!obs) return;
   if (find(discreteObservables.begin(), discreteObservables.end(), obs) != discreteObservables.end()) return;
   discreteObservables.push_back(obs);
+  registerObservable(static_cast<Variable*>(obs));
 }
 
 __host__ void PdfBase::setIntegrationFineness (int i) {
@@ -183,6 +183,11 @@ __host__ fptype* PdfBase::storeParameters (fptype *cache) const {
     cache[counter++] = host_params[(*v)->index];
   }
   return cache;
+}
+
+__host__ void PdfBase::initializeSetVarProduct() {
+  VariableCartesianProduct product(discreteObservables);
+  setVariableProduct = product.calculateCartersianProduct();
 }
  
 void dummySynch () {}

@@ -35,11 +35,14 @@ struct Variable : Indexable {
   Variable (std::string n, fptype dn, fptype up);
   Variable (std::string n, fptype v, fptype dn, fptype up);
   Variable (std::string n, fptype v, fptype e, fptype dn, fptype up);
-  template<typename valueIter>
-  valueIter begin();
 
-  template<typename valueIter>
-  valueIter end();
+  /*
+  template<typename iter>
+  iter begin();
+
+  template<typename iter>
+  iter end();
+  */
 
   virtual ~Variable ();
 
@@ -64,15 +67,16 @@ struct Constant : Indexable {
 
 class RooCategory;
 struct SetVariable : Variable {
+  SetVariable(const std::string& name);
   SetVariable (const SetVariable& other);
   SetVariable (const RooCategory& category);
   std::map<fptype, std::string> valueMap;
+  typedef std::map<fptype, std::string>::iterator valueIter;
 
-  template<typename valueIter>
   valueIter begin() { return valueMap.begin(); }
-  template<typename valueIter>
   valueIter end() { return valueMap.end(); }
   void addEntry(const std::string& name, fptype value);
 };
+
 
 #endif
