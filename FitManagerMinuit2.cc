@@ -18,7 +18,7 @@ ROOT::Minuit2::FunctionMinimum* FitManager::fit () {
   }
 
   numPars = maxIndex+1; 
-  migrad = new ROOT::Minuit2::MnMigrad(*this, *params); 
+  migrad = new ROOT::Minuit2::MnMinimize(*this, *params, 2);
   ROOT::Minuit2::FunctionMinimum* ret = new ROOT::Minuit2::FunctionMinimum((*migrad)());
 
   if (lastresult != 0) {

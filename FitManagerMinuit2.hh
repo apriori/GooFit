@@ -5,7 +5,7 @@
 #include "Minuit2/FunctionMinimum.h"
 #include "Minuit2/MnUserParameterState.h"
 #include "Minuit2/MnPrint.h"
-#include "Minuit2/MnMigrad.h"
+#include "Minuit2/MnMinimize.h"
 #include "Minuit2/MnMinos.h"
 #include "Minuit2/MnContours.h"
 #include "Minuit2/MnPlot.h"
@@ -23,7 +23,7 @@ protected:
   PdfBase* pdfPointer; 
   ROOT::Minuit2::FunctionMinimum* lastresult;
   ROOT::Minuit2::MnUserParameters* params;
-  ROOT::Minuit2::MnMigrad* migrad;
+  ROOT::Minuit2::MnMinimize* migrad;
   std::vector<Variable*> vars; 
   int numPars; 
 };
