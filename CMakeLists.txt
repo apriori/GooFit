@@ -8,8 +8,6 @@ find_package(ROOT REQUIRED COMPONENTS RooFitCore RooFit Hist Minuit Minuit2 Math
 
 #set up module includes
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/PDFs)
-include_directories(${CUDA_INCLUDE_DIRS})
-
 set(GOOFIT_MAJOR_VERSION 0)
 set(GOOFIT_MINOR_VERSION 1)
 set(GOOFIT_PATCH_VERSION 0)
@@ -40,6 +38,7 @@ endif()
 
 if(${GOOFIT_THRUST_BACKEND} MATCHES "CUDA")
     if(${CUDA_FOUND})
+	include_directories(${CUDA_INCLUDE_DIRS})
         set(GOOFIT_BACKEND_CUDA ON)
     else()
         message(FATAL_ERROR "Backend \"CUDA\" was selected but CUDA-SDK installation could not be found")
