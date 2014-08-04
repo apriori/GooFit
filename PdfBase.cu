@@ -99,7 +99,7 @@ __host__ void PdfBase::copyParams (const std::vector<double>& pars) const {
   for (unsigned int i = 0; i < pars.size(); ++i) {
     host_params[i] = pars[i]; 
     
-    if (std::isnan(host_params[i])) {
+    if (ISNAN(host_params[i])) {
       std::cout << " agh, parameter is NaN, die " << i << std::endl;
       abortWithCudaPrintFlush(__FILE__, __LINE__, "NaN in parameter"); 
     }

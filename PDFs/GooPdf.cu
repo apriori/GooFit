@@ -371,7 +371,7 @@ __host__ fptype GooPdf::normalise () const {
         cudaPlus
         ); 
  
-    if (std::isnan(sum)) {
+    if (ISNAN(sum)) {
       abortWithCudaPrintFlush(__FILE__, __LINE__, getName() + " NaN in normalisation", this); 
     }
     else if (0 >= sum) { 

@@ -38,6 +38,7 @@ extern int host_callnumber;
 #define THREADIDX (omp_get_thread_num())
 #define BLOCKDIM (omp_get_num_threads())
 #define BLOCKIDX (1)
+#define ISNAN (std::isnan)
 void dummySynch (); 
 // Create my own error type to avoid __host__ redefinition
 // conflict in Thrust from including driver_types.h
@@ -62,6 +63,7 @@ enum gooError {gooSuccess = cudaSuccess,
 #define THREADIDX (threadIdx.x)
 #define BLOCKDIM (blockDim.x)
 #define BLOCKIDX (blockIdx.x)
+#define ISNAN (isnan)
 #endif
 
 gooError gooMalloc (void** target, size_t bytes); 
