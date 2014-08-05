@@ -441,7 +441,7 @@ __device__ devcomplex<fptype> flatte(fptype m12, fptype m13, fptype m23, unsigne
     {
       // neutral a(0)(980)
       rho_1 = flatte_rhohelper(mEta, mPi0, rMassSq); // eta pi0
-      rho_KK = 0.5*(flatte_rhohelper(mK, rMassSq) + flatte_rhohelper(mK0, rMassSq)); // K+ K- and K0 K0
+      rho_KK = ((fptype)0.5)*(flatte_rhohelper(mK, rMassSq) + flatte_rhohelper(mK0, rMassSq)); // K+ K- and K0 K0
     }
   }
   else
@@ -455,8 +455,8 @@ __device__ devcomplex<fptype> flatte(fptype m12, fptype m13, fptype m23, unsigne
     else
     {
       // neutral f(0)(980)
-      rho_1 = (1.0/3.0)*(2.0 * flatte_rhohelper(mPi, rMassSq) + flatte_rhohelper(mPi0, rMassSq)); // factor of 2 from isospin conservation
-      rho_KK = 0.5*(flatte_rhohelper(mK, rMassSq) + flatte_rhohelper(mK0, rMassSq)); // K+ K- and K0 K0;
+      rho_1 = ((fptype)1.0/(fptype)3.0)*((fptype)2.0 * flatte_rhohelper(mPi, rMassSq) + flatte_rhohelper(mPi0, rMassSq)); // factor of 2 from isospin conservation
+      rho_KK = ((fptype)0.5)*(flatte_rhohelper(mK, rMassSq) + flatte_rhohelper(mK0, rMassSq)); // K+ K- and K0 K0;
     }
   }
   

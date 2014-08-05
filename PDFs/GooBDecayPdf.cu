@@ -93,7 +93,7 @@ __host__ fptype bdecayNorm(fptype t,
 }
 
 fptype GooBDecayInternal::integrate(fptype lo, fptype hi) const {
-  lo = std::max(lo, 0.0);
+  lo = std::max(lo, (fptype)0.0);
   unsigned int* indices = host_indices + parameters;
   fptype hiInt = bdecayNorm(hi,
                     1,

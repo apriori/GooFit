@@ -10,8 +10,8 @@ EXEC_TARGET fptype device_getHelicityCosine(fptype s12, fptype s13, fptype mothe
     E3(((motherMass*motherMass)-s12-(daug3Mass*daug3Mass))/(2.0*m12)),
     //E2((s12-(daug1Mass*daug1Mass)+(daug2Mass*daug2Mass))/(2.0*m12)),
     E1((s12-(daug2Mass*daug2Mass)+(daug1Mass*daug1Mass))/(2.0*m12)),
-    p(SQRT(fmax(0.0,(E1*E1)-(daug1Mass*daug1Mass)))),
-    q(SQRT(fmax(0.0,(E3*E3)-(daug3Mass*daug3Mass))));
+    p(SQRT(fmax((fptype)0.0,(E1*E1)-(daug1Mass*daug1Mass)))),
+    q(SQRT(fmax((fptype)0.0,(E3*E3)-(daug3Mass*daug3Mass))));
   
   // I'm sure this can be done more neatly
   // cos = (2.0*E1*E3 - (m13*m13) + (m1*m1) + (m3*m3)) / (2.0*p*q);

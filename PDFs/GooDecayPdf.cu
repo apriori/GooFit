@@ -21,7 +21,7 @@ __host__ GooDecayPdf::GooDecayPdf (std::string n, Variable* _t, Variable* tau)
 }
 
 __host__ fptype GooDecayPdf::integrate (fptype lo, fptype hi) const {
-  lo = std::max(lo, 0.0);
+  lo = std::max(lo, (fptype)0.0);
   unsigned int* indices = host_indices + parameters;
   fptype tau = host_params[indices[1]];
   return -tau * (EXP(-hi/tau) - EXP(-lo/tau));

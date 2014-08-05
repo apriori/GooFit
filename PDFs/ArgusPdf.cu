@@ -71,15 +71,15 @@ fptype argus_lower_helper (fptype x, fptype m0, fptype slope, fptype power) {
   return ret;
 }
 
-__host__ double ArgusPdf::integrate (fptype lo, fptype hi) const {
-  double norm = 0; 
-  unsigned int* indices = host_indices+parameters; 
+__host__ fptype ArgusPdf::integrate (fptype lo, fptype hi) const {
+  fptype norm = 0;
+  unsigned int* indices = host_indices+parameters;
   fptype m0    = host_params[indices[1]];
   fptype slope = host_params[indices[2]];
   fptype power = host_params[indices[3]]; 
 
   for (int j = 0; j < integrationBins; ++j) {
-    double x = hi;
+    fptype x = hi;
     x -= lo; 
     x /= integrationBins;
     x *= j;
