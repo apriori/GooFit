@@ -3,9 +3,7 @@
 EXEC_TARGET fptype device_GooDecay (fptype* evt, fptype* p, unsigned int* indices) {
   fptype t = evt[indices[2 + indices[0]]]; 
   fptype tau = p[indices[1]];
-  fptype ft = FABS(t);
-
-  fptype ret = EXP(-ft/tau);
+  fptype ret = EXP(-t/tau);
   return ret; 
 }
 

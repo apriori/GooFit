@@ -20,14 +20,13 @@ EXEC_TARGET fptype device_GooBDecay(fptype* evt, fptype* p, unsigned int* indice
   fptype coeffBase = tag * (1. - 2. * parOmega);
   fptype f2 = -coeffBase * parC;
   fptype f3 = coeffBase * parS;
-  fptype ft = FABS(t);
 
   fptype cosh_ = COSH(dgt);
   fptype sinh_ = SINH(dgt);
   fptype cos_ = COS(dmt);
   fptype sin_ = SIN(dmt);
 
-  return exp(-ft/tau) * (f0 * cosh_
+  return exp(-t/tau) *  (f0 * cosh_
                         +f1 * sinh_
                         +f2 * cos_
                         +f3 * sin_
@@ -135,9 +134,9 @@ fptype GooBDecayInternal::integrate(fptype lo, fptype hi) const {
                    host_params[indices[7]],
                    host_params[indices[8]]
                     );
-  //return hiInt2 + hiInt - loInt - loInt2;
-  fptype ttau = host_params[indices[4]];
-  return 2*-ttau * (exp(-hi/ttau) - exp(-lo/ttau));
+  return hiInt2 + hiInt - loInt - loInt2;
+  //fptype ttau = host_params[indices[4]];
+  //return 2.0*-ttau * (exp(-hi/ttau) - exp(-lo/ttau));
   //return hiInt - loInt;
 }
 
