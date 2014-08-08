@@ -11,21 +11,49 @@
 #include "Minuit2/MnPlot.h"
 #include "Minuit2/MinosError.h"
 #include "Minuit2/ContoursError.h"
-class FitManager : public ROOT::Minuit2::FCNBase {
+#include "Minuit2/Minuit2Minimizer.h"
+
+class PdfFunctionProxy : public ROOT::Math::IBaseFunctionMultiDim {
 public:
-  FitManager (PdfBase* dat) {pdfPointer = dat; lastresult = 0; }
+  PdfFunctionProxy(PdfBase &pdf);
+  PdfFunctionProxy(PdfFunctionProxy &other);
+  PdfFunctionProxy(const PdfFunctionProxy& other);
+  virtual IBaseFunctionMultiDim* Clone() const;
+  virtual ~PdfFunctionProxy() {}
+
+  virtual unsigned int NDim() const { return dim; }
+
+private:
+
+  virtual double DoEval(const double* x) const;
+
+private:
+
+  PdfBase& pdfRef;
+  unsigned int dim;
+  std::vector<Variable*> vars;
+};
+
+class FitManager {
+public:
+  FitManager (PdfBase* dat, ROOT::Minuit2::EMinimizerType minmizerType = ROOT::Minuit2::kCombined, int strategy = 2);
+  ROOT::Minuit2::Minuit2Minimizer* getMinimizer() { return minimizer; }
+
+
   virtual double Up() const {return 1.0;}
   double operator () (const std::vector<double>& pars) const; 
+
+
   ROOT::Minuit2::FunctionMinimum* fit (); 
   void getMinuitValues () const;
+  virtual ~FitManager();
 
 protected:
-  PdfBase* pdfPointer; 
-  ROOT::Minuit2::FunctionMinimum* lastresult;
-  ROOT::Minuit2::MnUserParameters* params;
-  ROOT::Minuit2::MnMinimize* migrad;
-  std::vector<Variable*> vars; 
-  int numPars; 
+  PdfBase* pdfPointer;
+  PdfFunctionProxy* pdfProxy;
+  ROOT::Minuit2::Minuit2Minimizer* minimizer;
+  std::vector<Variable*> vars;
+  int numPars;
 };
 
 #endif

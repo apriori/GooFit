@@ -1,74 +1,101 @@
 #include "FitManagerMinuit2.hh"
+#include <cstdlib>
+
+
+PdfFunctionProxy::PdfFunctionProxy(PdfBase& pdf)
+ : pdfRef(pdf)
+ , dim(pdf.getParameters().size())
+ , vars(pdf.getParameters()) {
+}
+
+PdfFunctionProxy::PdfFunctionProxy(PdfFunctionProxy &other)
+ : pdfRef(other.pdfRef)
+ , dim(other.dim)
+ , vars(other.vars) {
+
+}
+
+PdfFunctionProxy::PdfFunctionProxy(const PdfFunctionProxy& other)
+ : pdfRef(other.pdfRef)
+ , dim(other.dim)
+ , vars(other.vars) {
+
+}
+
+ROOT::Math::IBaseFunctionMultiDim* PdfFunctionProxy::Clone() const {
+  return new PdfFunctionProxy(*this);
+}
+
+double PdfFunctionProxy::DoEval(const double* x) const {
+  vector<double> gooPars; // Translates from Minuit indexing to GooFit indexing
+  auto vars = pdfRef.getParameters();
+  gooPars.resize(dim);
+  for (auto i = vars.begin(); i != vars.end(); ++i) {
+    gooPars[(*i)->index] = x[(*i)->index];
+  }
+
+  pdfRef.copyParams(gooPars);
+  double nll = pdfRef.calculateNLL();
+  host_callnumber++;
+
+  return nll;
+}
+
+FitManager::FitManager(PdfBase *dat, ROOT::Minuit2::EMinimizerType minmizerType, int strategy)
+  : pdfPointer(dat)
+  , pdfProxy(new PdfFunctionProxy(*dat))
+  , minimizer(new ROOT::Minuit2::Minuit2Minimizer(minmizerType))
+  , vars(pdfPointer->getParameters()) {
+  minimizer->SetFunction(*pdfProxy);
+  minimizer->SetDefaultOptions();
+  minimizer->SetStrategy(strategy);
+  minimizer->SetPrecision(std::numeric_limits<fptype>::epsilon());
+  minimizer->SetTolerance(1.0);
+  minimizer->SetPrintLevel(1);
+
+  std::sort(vars.begin(), vars.end(), variableIndexCompare);
+}
+
 
 ROOT::Minuit2::FunctionMinimum* FitManager::fit () {
-  host_callnumber = 0; 
-  params = new ROOT::Minuit2::MnUserParameters();
-  vars.clear();
-  pdfPointer->getParameters(vars); 
+  minimizer->Clear();
+  minimizer->SetMaxFunctionCalls(minimizer->NFree() * 500);
+  minimizer->SetMaxIterations(minimizer->NFree() * 500);
 
-  numPars = vars.size();
-  int maxIndex = 0;
-  for (std::vector<Variable*>::iterator i = vars.begin(); i != vars.end(); ++i) {
-    if ((*i)->isCategoryConstant) continue;
-    if ((*i)->lowerlimit == (*i)->upperlimit) params->Add((*i)->name, (*i)->value, (*i)->error); 
-    else params->Add((*i)->name, (*i)->value, (*i)->error, (*i)->lowerlimit, (*i)->upperlimit); 
-    if ((*i)->fixed) params->Fix(params->Index((*i)->name)); 
+  for (auto i = vars.begin(); i != vars.end(); ++i) {
+    auto var = (*i);
 
-    if (maxIndex < (*i)->getIndex()) maxIndex = (*i)->getIndex();
+    if (((*i)->lowerlimit == (*i)->upperlimit) || var->fixed) {
+      minimizer->SetFixedVariable(var->index, var->name, var->value);
+    }
+    else {
+      minimizer->SetLimitedVariable(var->index, var->name, var->value, var->error, var->lowerlimit, var->upperlimit);
+    }
   }
 
-  numPars = maxIndex+1; 
-  migrad = new ROOT::Minuit2::MnMinimize(*this, *params, 2);
-  ROOT::Minuit2::FunctionMinimum* ret = new ROOT::Minuit2::FunctionMinimum((*migrad)());
-
-  if (lastresult != 0) {
-      delete lastresult;
+  if (minimizer->Minimize()) {
+    return NULL;
   }
-  lastresult = ret;
 
-  return ret; 
+
+  return NULL;
 }
 
-double FitManager::operator () (const vector<double>& pars) const {
-  vector<double> gooPars; // Translates from Minuit indexing to GooFit indexing
-  gooPars.resize(numPars); 
-  int counter = 0; 
-  for (std::vector<Variable*>::const_iterator i = vars.begin(); i != vars.end(); ++i) {
-    gooPars[(*i)->index] = pars[counter++]; 
-  }
-
-  pdfPointer->copyParams(gooPars); 
-  double nll = pdfPointer->calculateNLL();
-  host_callnumber++; 
-
-#ifdef PRINTCALLS
-  double edm = migrad->State().Edm(); 
-  cout.precision(8); 
-  cout << "State at call " 
-	    << host_callnumber << " : "
-	    << nll << " "
-	    << edm << " Pars: ";
-  std::vector<Variable*> vars;
-  pdfPointer->getParameters(vars); 
-  for (std::vector<Variable*>::iterator i = vars.begin(); i != vars.end(); ++i) {
-    if (0 > (*i)->getIndex()) continue;
-    if ((*i)->fixed) continue;
-    cout << "(" << (*i)->name << " " << pars[(*i)->getIndex()] << ") "; // migrad->Value((*i)->getIndex()) << ") ";
-  }
-
-  cout << endl; 
-#endif 
-
-  return nll; 
-}
 
 void FitManager::getMinuitValues () const {
-  const ROOT::Minuit2::MnUserParameters& params = lastresult->UserParameters();
+  auto minimizeParams = minimizer->State().Parameters();
 
-  for (std::vector<Variable*>::const_iterator i = vars.begin(); i != vars.end(); ++i) {
+  for (auto i = vars.begin(); i != vars.end(); ++i) {
       Variable* var = (*i);
-      var->value = params.Value(var->name);
-      var->error = params.Error(var->name);
-  }
+      var->value = minimizeParams.Value(var->name);
+      var->error = minimizeParams.Error(var->name);
+    }
 }
+
+FitManager::~FitManager() {
+  delete minimizer;
+  delete pdfProxy;
+}
+
+
 
