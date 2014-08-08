@@ -23,9 +23,13 @@ Variable::Variable (const RooRealVar& var)
   , fixed(var.isConstant())
   , isCategoryConstant(false)
   , isDiscrete(false)
-  , blind(false)
+  , blind(0.0)
 {
   value = var.getVal();
+
+  if (var.getMin() == var.getMax()) {
+      fixed = true;
+  }
 
   if (!fixed) {
       lowerlimit = var.getMin();
@@ -43,8 +47,9 @@ Variable::Variable (const Variable& other) : Indexable(other) {
   lowerlimit = other.lowerlimit;
   numbins = other.numbins;
   fixed = other.fixed;
-  blind = other.blind;
   isCategoryConstant = other.isCategoryConstant;
+  isDiscrete = other.isDiscrete;
+  blind = other.blind;
 }
 
 Variable::Variable (std::string n) 
@@ -171,4 +176,8 @@ SetVariable::SetVariable(const RooCategory& category)
 
 void SetVariable::addEntry(const std::string& name, fptype value) {
   valueMap[value] = name;
+}
+
+bool variableIndexCompare(const Variable* v1, const Variable* v2) {
+  return v1->index < v2->index;
 }

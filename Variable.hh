@@ -79,4 +79,6 @@ struct SetVariable : Variable {
 };
 
 
+bool variableIndexCompare(const Variable* v1, const Variable* v2);
+
 #endif
