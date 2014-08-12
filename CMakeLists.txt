@@ -106,7 +106,7 @@ LIST(REMOVE_ITEM CXXCode
     ${CMAKE_CURRENT_SOURCE_DIR}/GenVoigtian.cc)
 
 #flag magic
-set(ADDITIONAL_CXXFLAGS "${OpenMP_CXX_FLAGS} -DHAVE_ROOT=1")
+set(ADDITIONAL_CXXFLAGS "${OpenMP_CXX_FLAGS} -DHAVE_ROOT=1 -DGOOFIT_THRUST_BACKEND_${GOOFIT_THRUST_BACKEND}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ADDITIONAL_CXXFLAGS}")
 
 message(STATUS "ADDITIONAL FLAGS ${ADDITIONAL_CXXFLAGS}")
@@ -116,7 +116,7 @@ message(STATUS "FLAG RELEASE ${CMAKE_CXX_FLAGS_RELEASE}")
 
 if(${GOOFIT_BACKEND_CUDA})
     set(CUDA_ARCH_FLAGS -arch=sm_20)
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};${CUDA_ARCH_FLAGS};-Xcompiler -fpic;-Xcompiler -fopenmp)
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};${CUDA_ARCH_FLAGS};-Xcompiler -fpic;-Xcompiler ${ADDITIONAL_CXXFLAGS})
     if(CMAKE_BUILD_TYPE MATCHES Release)
     	set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-O3)
     	message(STATUS "compiling in release mode")
@@ -146,7 +146,6 @@ else()
 	message(WARNING "Deactivating examples since their camke files don't support openmp, yet")
 endif()
 #add_subdirectory(rootstuff)
-
 
 export(PACKAGE GooFit)
 
