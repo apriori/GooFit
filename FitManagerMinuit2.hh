@@ -40,10 +40,6 @@ public:
   ROOT::Minuit2::Minuit2Minimizer* getMinimizer() { return minimizer; }
 
 
-  virtual double Up() const {return 1.0;}
-  double operator () (const std::vector<double>& pars) const; 
-
-
   ROOT::Minuit2::FunctionMinimum* fit (); 
   void getMinuitValues () const;
   virtual ~FitManager();
