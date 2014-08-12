@@ -5,11 +5,10 @@
 #include <cmath> 
 #include <string> 
 using namespace std; 
-extern int host_callnumber; 
+extern int host_callnumber;
 
-#ifdef OMP_ON
+#ifdef GOOFIT_THRUST_BACKEND_OPENMP
 #include "omp.h"
-#define MAX_THREADS 8
 #pragma omp threadprivate (host_callnumber)
 #endif
 
