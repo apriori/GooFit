@@ -59,8 +59,6 @@ FitManager::FitManager(PdfBase *dat, ROOT::Minuit2::EMinimizerType minmizerType,
 
 ROOT::Minuit2::FunctionMinimum* FitManager::fit () {
   minimizer->Clear();
-  minimizer->SetMaxFunctionCalls(minimizer->NFree() * 500);
-  minimizer->SetMaxIterations(minimizer->NFree() * 500);
 
   for (auto i = vars.begin(); i != vars.end(); ++i) {
     auto var = (*i);
@@ -73,10 +71,12 @@ ROOT::Minuit2::FunctionMinimum* FitManager::fit () {
     }
   }
 
+  minimizer->SetMaxFunctionCalls(minimizer->NFree() * 500);
+  minimizer->SetMaxIterations(minimizer->NFree() * 500);
+
   if (minimizer->Minimize()) {
     return NULL;
   }
-
 
   return NULL;
 }
