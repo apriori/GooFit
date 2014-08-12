@@ -3,6 +3,7 @@
 #include "thrust/sequence.h" 
 #include "thrust/iterator/constant_iterator.h" 
 #include "thrust/system_error.h"
+#include "tiledRange.hh"
 #include <fstream> 
 
 
@@ -161,7 +162,7 @@ __host__ void GooPdf::setMetrics () {
 __host__ double GooPdf::sumOfNll (int numVars) const {
   static thrust::plus<double> cudaPlus;
   thrust::constant_iterator<int> eventSize(numVars); 
-  thrust::constant_iterator<fptype*> arrayAddress(dev_event_array); 
+  thrust::constant_iterator<fptype*> arrayAddress(dev_event_array);
   double dummy = 0;
 
   //if (host_callnumber >= 2) abortWithCudaPrintFlush(__FILE__, __LINE__, getName() + " debug abort", this); 
@@ -239,7 +240,7 @@ __host__ void GooPdf::evaluateAtPoints (Variable* var, std::vector<fptype>& res)
  
   thrust::counting_iterator<int> eventIndex(0); 
   thrust::constant_iterator<int> eventSize(observables.size()); 
-  thrust::constant_iterator<fptype*> arrayAddress(dev_event_array); 
+  thrust::constant_iterator<fptype*> arrayAddress(dev_event_array);
   thrust::device_vector<fptype> results(var->numbins); 
 
   MetricTaker evalor(this, getMetricPointer("ptr_to_Eval")); 
@@ -295,13 +296,91 @@ __host__ void GooPdf::scan (Variable* var, std::vector<fptype>& values) {
   }
 }
 
+__host__ void GooPdf::scan (Variable* var,
+                            std::vector<fptype>& xvalues,
+                            std::vector<fptype>& yvalues,
+                            int sampleBins,
+                            int stepSigma) {
+  normalise();
+  xvalues.clear();
+  yvalues.clear();
+  if (sampleBins == -1) {
+    sampleBins = var->numbins;
+  }
+
+  if (host_normalisation[parameters] <= 0) {
+    abortWithCudaPrintFlush(__FILE__, __LINE__, getName() + " non-positive normalisation", this);
+  }
+
+  MEMCPY_TO_SYMBOL(normalisationFactors, host_normalisation, totalParams*sizeof(fptype), 0, cudaMemcpyHostToDevice);
+  SYNCH(); // Ensure normalisation integrals are finished
+
+  fptype step = (2 * stepSigma * var->error)/sampleBins;
+  fptype* obsRanges = 0;
+  gooMalloc((void**)&obsRanges, 3 * observables.size() * sizeof(fptype) * sampleBins);
+
+  //generate x values
+  thrust::device_vector<fptype> gpuXvalues(sampleBins);
+  thrust::sequence(gpuXvalues.begin(), gpuXvalues.end(), var->lowerlimit, step);
+
+  //generate param vector
+  thrust::constant_iterator<fptype*> eventAddress(dev_event_array);
+  thrust::device_ptr<fptype> paramAddress(thrust::device_pointer_cast(paramArray));
+  thrust::device_vector<fptype> paramCopy(totalParams);
+  //thrust::copy(paramAddress, paramAddress + totalParams, paramCopy);
+
+  //replicate param vector sampleBins times
+  tiled_range<thrust::device_vector<fptype>::iterator > repeat(paramCopy.begin(), paramCopy.end(), sampleBins);
+  thrust::device_vector<fptype> multipliedParams(repeat.begin(), repeat.end());
+
+  thrust::constant_iterator<fptype*> multPrams(paramArray);
+  thrust::constant_iterator<int> eventSize(observables.size());
+
+  static thrust::plus<double> cudaPlus;
+
+  double dummy = 0;
+
+  //if (host_callnumber >= 2) abortWithCudaPrintFlush(__FILE__, __LINE__, getName() + " debug abort", this);
+  thrust::counting_iterator<int> eventIndex(0);
+  try
+  {
+    thrust::transform_reduce(thrust::make_zip_iterator(thrust::make_tuple(eventIndex,
+                                                                                 eventAddress,
+                                                                                 multPrams,
+                                                                                 eventSize)),
+                                  thrust::make_zip_iterator(thrust::make_tuple(eventIndex + numEntries,
+                                                                               eventAddress,
+                                                                               multPrams,
+                                                                               eventSize)),
+                                  *logger, dummy, cudaPlus);
+  }
+  catch(thrust::system_error &e)
+  {
+    std::cerr << "Exception thrown in sumOfNll: " << e.what() << std::endl;
+    exit(-1);
+  }
+
+  gooFree(obsRanges);
+}
+
 __host__ void GooPdf::setParameterConstantness (bool constant) {
   PdfBase::parCont pars; 
   getParameters(pars); 
   for (PdfBase::parIter p = pars.begin(); p != pars.end(); ++p) {
     (*p)->fixed = constant; 
-  }
+    }
 }
+
+ptrdiff_t GooPdf::numVarsOffset() const {
+  ptrdiff_t result= observables.size();
+  if (fitControl->binnedFit()) {
+    result += 2;
+    result *= -1;
+  }
+  return result;
+}
+
+
 
 __host__ fptype GooPdf::getValue () {
   // Returns the value of the PDF at a single point. 
@@ -397,23 +476,53 @@ __host__ fptype GooPdf::normalise () const {
 }
 
 #ifdef PROFILING
-MEM_CONSTANT fptype conversion = (1.0 / CLOCKS_PER_SEC); 
-EXEC_TARGET fptype callFunction (fptype* eventAddress, unsigned int functionIdx, unsigned int paramIdx) {
+MEM_CONSTANT fptype conversion = (1.0 / CLOCKS_PER_SEC);
+EXEC_TARGET fptype callFunction (fptype* eventAddress, fptype* paramAddress, unsigned int functionIdx, unsigned int paramIdx) {
   clock_t start = clock();
-  fptype ret = (*(reinterpret_cast<device_function_ptr>(device_function_table[functionIdx])))(eventAddress, paramArray, paramIndices + paramIdx);
-  clock_t stop = clock(); 
+  fptype ret = (*(reinterpret_cast<device_function_ptr>(device_function_table[functionIdx])))(eventAddress, paramAddress, paramIndices + paramIdx);
+  clock_t stop = clock();
   if ((0 == THREADIDX + BLOCKIDX) && (stop > start)) {
-    // Avoid issue when stop overflows and start doesn't. 
-    timeHistogram[functionIdx*100 + paramIdx] += ((stop - start) * conversion); 
-    //printf("Clock: %li %li %li | %u %f\n", (long) start, (long) stop, (long) (stop - start), functionIdx, timeHistogram[functionIdx]); 
+    // Avoid issue when stop overflows and start doesn't.
+    timeHistogram[functionIdx*100 + paramIdx] += ((stop - start) * conversion);
+    //printf("Clock: %li %li %li | %u %f\n", (long) start, (long) stop, (long) (stop - start), functionIdx, timeHistogram[functionIdx]);
   }
-  return ret; 
+  return ret;
 }
-#else 
+
+
+#else
+EXEC_TARGET fptype callFunction (fptype* eventAddress, fptype* paramAddress, unsigned int functionIdx, unsigned int paramIdx) {
+  return (*(reinterpret_cast<device_function_ptr>(device_function_table[functionIdx])))(eventAddress, paramAddress, paramIndices + paramIdx);
+}
+#endif
+
 EXEC_TARGET fptype callFunction (fptype* eventAddress, unsigned int functionIdx, unsigned int paramIdx) {
-  return (*(reinterpret_cast<device_function_ptr>(device_function_table[functionIdx])))(eventAddress, paramArray, paramIndices + paramIdx);
+  return callFunction(eventAddress, paramArray, functionIdx, paramIdx);
 }
-#endif 
+
+EXEC_TARGET fptype MetricTaker::operator () (int eventIndex, fptype* eventArray, fptype* paramArray, int eventSize) const {
+  // Calculate event offset for this thread.
+  fptype* eventAddress = eventArray + (eventIndex * abs(eventSize));
+
+  // Causes stack size to be statically undeterminable.
+  fptype ret = callFunction(eventAddress, paramArray, functionIdx, parameters);
+
+  // Notice assumption here! For unbinned fits the 'eventAddress' pointer won't be used
+  // in the metric, so it doesn't matter what it is. For binned fits it is assumed that
+  // the structure of the event is (obs1 obs2... binentry binvolume), so that the array
+  // passed to the metric consists of (binentry binvolume).
+  ret = (*(reinterpret_cast<device_metric_ptr>(device_function_table[metricIndex])))(ret, eventAddress + (abs(eventSize)-2), parameters);
+  return ret;
+}
+
+EXEC_TARGET fptype MetricTaker::operator () (thrust::tuple<int, fptype*, fptype*, int> t) const {
+  // Calculate event offset for this thread.
+  int eventIndex = thrust::get<0>(t);
+  int eventSize  = thrust::get<3>(t);
+  fptype* paramAddress = thrust::get<2>(t);
+  fptype* eventAddress = thrust::get<1>(t);
+  return operator()(eventIndex, eventAddress, paramAddress, eventSize);
+}
 
 // Notice that operators are distinguished by the order of the operands,
 // and not otherwise! It's up to the user to make his tuples correctly. 
@@ -421,26 +530,17 @@ EXEC_TARGET fptype callFunction (fptype* eventAddress, unsigned int functionIdx,
 // Main operator: Calls the PDF to get a predicted value, then the metric 
 // to get the goodness-of-prediction number which is returned to MINUIT. 
 EXEC_TARGET fptype MetricTaker::operator () (thrust::tuple<int, fptype*, int> t) const {
-  // Calculate event offset for this thread. 
+  // Calculate event offset for this thread.
   int eventIndex = thrust::get<0>(t);
   int eventSize  = thrust::get<2>(t);
-  fptype* eventAddress = thrust::get<1>(t) + (eventIndex * abs(eventSize)); 
-
-  // Causes stack size to be statically undeterminable.
-  fptype ret = callFunction(eventAddress, functionIdx, parameters);
-
-  // Notice assumption here! For unbinned fits the 'eventAddress' pointer won't be used
-  // in the metric, so it doesn't matter what it is. For binned fits it is assumed that
-  // the structure of the event is (obs1 obs2... binentry binvolume), so that the array
-  // passed to the metric consists of (binentry binvolume). 
-  ret = (*(reinterpret_cast<device_metric_ptr>(device_function_table[metricIndex])))(ret, eventAddress + (abs(eventSize)-2), parameters);
-  return ret; 
+  fptype* eventAddress = thrust::get<1>(t);
+  return operator()(eventIndex, eventAddress, paramArray, eventSize);
 }
  
 // Operator for binned evaluation, no metric. 
 // Used in normalisation. 
 #define MAX_NUM_OBSERVABLES 2
-EXEC_TARGET fptype MetricTaker::operator () (thrust::tuple<int, int, fptype*> t) const {
+EXEC_TARGET fptype MetricTaker::operator () (thrust::tuple<int, int, fptype *> t) const {
   // Bin index, event size, base address [lower, upper, numbins] 
  
   int evtSize = thrust::get<1>(t);
@@ -469,7 +569,7 @@ EXEC_TARGET fptype MetricTaker::operator () (thrust::tuple<int, int, fptype*> t)
   }
 
   // Causes stack size to be statically undeterminable.
-  fptype ret = callFunction(binCenters+THREADIDX*MAX_NUM_OBSERVABLES, functionIdx, parameters); 
+  fptype ret = callFunction(binCenters+THREADIDX*MAX_NUM_OBSERVABLES, functionIdx, parameters);
   return ret; 
 }
 

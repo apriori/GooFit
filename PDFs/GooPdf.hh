@@ -41,9 +41,15 @@ public:
   __host__ void getCompProbsAtDataPoints (std::vector<std::vector<fptype> >& values);
   __host__ void initialise (std::vector<unsigned int> pindices, void* dev_functionPtr = host_fcn_ptr); 
   __host__ void scan (Variable* var, std::vector<fptype>& values);
+  __host__ void scan (Variable* var,
+                      std::vector<fptype>& xvalues,
+                      std::vector<fptype>& yvalues,
+                      int sampleBins,
+                      int stepSigma = 3);
   __host__ virtual void setFitControl (FitControl* const fc, bool takeOwnerShip = true);
   __host__ virtual void setMetrics (); 
   __host__ void setParameterConstantness (bool constant = true);
+  __host__ ptrdiff_t numVarsOffset() const;
 
   __host__ virtual void transformGrid (fptype* host_output); 
   static __host__ int findFunctionIdx (void* dev_functionPtr); 
@@ -61,10 +67,15 @@ public:
 
   MetricTaker (PdfBase* dat, void* dev_functionPtr); 
   MetricTaker (int fIdx, int pIdx);
-  EXEC_TARGET fptype operator () (thrust::tuple<int, fptype*, int> t) const;           // Event number, dev_event_array (pass this way for nvcc reasons), event size 
+  EXEC_TARGET fptype operator () (thrust::tuple<int, fptype*, fptype*, int> t) const;
+  EXEC_TARGET fptype operator () (thrust::tuple<int, fptype*, int> t) const;           // Event number, dev_event_array (pass this way for nvcc reasons), event size
   EXEC_TARGET fptype operator () (thrust::tuple<int, int, fptype*> t) const;           // Event number, event size, normalisation ranges (for binned stuff, eg integration)
 
 private:
+
+private:
+  //this wrapper only exists due to overloading resolution failures with thrust::tuple
+  EXEC_TARGET fptype operator () (int eventIndex, fptype* eventArray, fptype* paramArray, int eventSize) const;
 
   unsigned int metricIndex; // Function-pointer index of processing function, eg logarithm, chi-square, other metric. 
   unsigned int functionIdx; // Function-pointer index of actual PDF
@@ -80,6 +91,7 @@ EXEC_TARGET fptype calculateProb (fptype rawPdf, fptype* evtVal, unsigned int pa
 EXEC_TARGET fptype calculateBinAvg (fptype rawPdf, fptype* evtVal, unsigned int par);
 EXEC_TARGET fptype calculateBinWithError (fptype rawPdf, fptype* evtVal, unsigned int par);
 EXEC_TARGET fptype calculateChisq (fptype rawPdf, fptype* evtVal, unsigned int par);
+EXEC_TARGET fptype callFunction (fptype* eventAddress, fptype *paramAddress, unsigned int functionIdx, unsigned int paramIdx);
 EXEC_TARGET fptype callFunction (fptype* eventAddress, unsigned int functionIdx, unsigned int paramIdx);
 void* getMetricPointer (std::string name);
 
