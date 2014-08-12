@@ -131,8 +131,8 @@ private:
 
 
 // Device-side, translation-unit constrained. 
-extern MEM_CONSTANT fptype cudaArray[maxParams];           // Holds device-side fit parameters. 
-extern MEM_CONSTANT unsigned int paramIndices[maxParams];  // Holds functor-specific indices into cudaArray. Also overloaded to hold integer constants (ie parameters that cannot vary.) 
+extern MEM_CONSTANT fptype paramArray[maxParams];           // Holds device-side fit parameters.
+extern MEM_CONSTANT unsigned int paramIndices[maxParams];  // Holds functor-specific indices into paramArray. Also overloaded to hold integer constants (ie parameters that cannot vary.)
 extern MEM_CONSTANT fptype functorConstants[maxParams];    // Holds non-integer constants. Notice that first entry is number of events. 
 extern MEM_CONSTANT fptype normalisationFactors[maxParams]; 
 

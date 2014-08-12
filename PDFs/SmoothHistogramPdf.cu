@@ -52,7 +52,7 @@ struct Smoother {
   EXEC_TARGET fptype operator () (int globalBin) {
     unsigned int* indices = paramIndices + parameters; 
     int numVars = indices[indices[0] + 1]; 
-    fptype smoothing = cudaArray[indices[1]];
+    fptype smoothing = paramArray[indices[1]];
     int histIndex = indices[2]; 
     fptype* myHistogram = dev_base_histograms[histIndex];
     fptype centralValue = myHistogram[globalBin]; 

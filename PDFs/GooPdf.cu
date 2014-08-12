@@ -400,7 +400,7 @@ __host__ fptype GooPdf::normalise () const {
 MEM_CONSTANT fptype conversion = (1.0 / CLOCKS_PER_SEC); 
 EXEC_TARGET fptype callFunction (fptype* eventAddress, unsigned int functionIdx, unsigned int paramIdx) {
   clock_t start = clock();
-  fptype ret = (*(reinterpret_cast<device_function_ptr>(device_function_table[functionIdx])))(eventAddress, cudaArray, paramIndices + paramIdx);
+  fptype ret = (*(reinterpret_cast<device_function_ptr>(device_function_table[functionIdx])))(eventAddress, paramArray, paramIndices + paramIdx);
   clock_t stop = clock(); 
   if ((0 == THREADIDX + BLOCKIDX) && (stop > start)) {
     // Avoid issue when stop overflows and start doesn't. 
@@ -411,7 +411,7 @@ EXEC_TARGET fptype callFunction (fptype* eventAddress, unsigned int functionIdx,
 }
 #else 
 EXEC_TARGET fptype callFunction (fptype* eventAddress, unsigned int functionIdx, unsigned int paramIdx) {
-  return (*(reinterpret_cast<device_function_ptr>(device_function_table[functionIdx])))(eventAddress, cudaArray, paramIndices + paramIdx);
+  return (*(reinterpret_cast<device_function_ptr>(device_function_table[functionIdx])))(eventAddress, paramArray, paramIndices + paramIdx);
 }
 #endif 
 

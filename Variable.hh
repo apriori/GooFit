@@ -23,7 +23,7 @@ class RooRealVar;
 struct Variable : Indexable { 
   // Contains information about a parameter allowed
   // to vary in MINUIT, or an observable passed to a
-  // data set. The index can refer either to cudaArray
+  // data set. The index can refer either to paramArray
   // or to an event. 
 
   static Variable fromRooRealVar(const RooRealVar& var);
@@ -59,7 +59,7 @@ struct Variable : Indexable {
 
 struct Constant : Indexable { 
   // This is similar to Variable, but the index points
-  // to functorConstants instead of cudaArray. 
+  // to functorConstants instead of paramArray. 
 
   Constant (std::string n, fptype val) : Indexable(n, val) {}
   virtual ~Constant () {}

@@ -342,7 +342,7 @@ EXEC_TARGET devcomplex<fptype> SpecialResonanceIntegrator::operator () (thrust::
   binCenterM13        += lowerBoundM13; 
 
   unsigned int* indices = paramIndices + parameters;   
-  devcomplex<fptype> ret = this->devicefunction(binCenterM12, binCenterM13, resonance_i, resonance_j, cudaArray, indices); 
+  devcomplex<fptype> ret = this->devicefunction(binCenterM12, binCenterM13, resonance_i, resonance_j, paramArray, indices);
 
   fptype fakeEvt[10]; // Need room for many observables in case m12 or m13 were assigned a high index in an event-weighted fit. 
   fakeEvt[indices[indices[0] + 2 + 0]] = binCenterM12;

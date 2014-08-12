@@ -255,9 +255,9 @@ EXEC_TARGET fptype device_Tddp (fptype* evt, fptype* p, unsigned int* indices) {
   //printf("Signal1 %i (%f, %f) (%f, %f) (%f, %f %f) %f\n", evtNum, term1, term2, sumWavesA.real, sumWavesA.imag, _tau, _xmixing, _ymixing, ret);
   //fptype m23 = motherMass*motherMass + daug1Mass*daug1Mass + daug2Mass*daug2Mass + daug3Mass*daug3Mass - m12 - m13; 
   //printf("Signal2 %i (%f, %f, %f) %f, %f | %f %f %f\n", evtNum, m12, m13, m23, _time, _sigma, eff, ret, normalisationFactors[(indices - paramIndices)]);
-  //printf("Signal3 %f %f %f %f %f %f %f %f\n", cudaArray[indices[effFunctionIdx+1]+1], cudaArray[indices[effFunctionIdx+1]+2], cudaArray[indices[effFunctionIdx+1]+3], 
-  //cudaArray[indices[effFunctionIdx+1]+4], cudaArray[indices[effFunctionIdx+1]+5], cudaArray[indices[effFunctionIdx+1]+6], 
-  //cudaArray[indices[effFunctionIdx+1]+7], cudaArray[indices[effFunctionIdx+1]+8]); 
+  //printf("Signal3 %f %f %f %f %f %f %f %f\n", paramArray[indices[effFunctionIdx+1]+1], paramArray[indices[effFunctionIdx+1]+2], paramArray[indices[effFunctionIdx+1]+3],
+  //paramArray[indices[effFunctionIdx+1]+4], paramArray[indices[effFunctionIdx+1]+5], paramArray[indices[effFunctionIdx+1]+6],
+  //paramArray[indices[effFunctionIdx+1]+7], paramArray[indices[effFunctionIdx+1]+8]);
   //}
 
   //printf("(%i, %i) TDDP: %f %f %f %f %f %i %f\n", BLOCKIDX, THREADIDX, _time, _sigma, m12, m13, term1, evtNum, ret);
@@ -663,7 +663,7 @@ EXEC_TARGET ThreeComplex SpecialDalitzIntegrator::operator () (thrust::tuple<int
 
   //if (0 == THREADIDX) cuPrintf("%i %i %i %f %f operator\n", thrust::get<0>(t), thrust::get<0>(t) % numBinsM12, globalBinNumber, binCenterM12, binCenterM13);
   unsigned int* indices = paramIndices + parameters;   
-  ThreeComplex ret = device_Tddp_calcIntegrals(binCenterM12, binCenterM13, resonance_i, resonance_j, cudaArray, indices); 
+  ThreeComplex ret = device_Tddp_calcIntegrals(binCenterM12, binCenterM13, resonance_i, resonance_j, paramArray, indices);
 
   fptype fakeEvt[10]; // Need room for many observables in case m12 or m13 were assigned a high index in an event-weighted fit. 
   fakeEvt[indices[indices[0] + 2 + 2]] = binCenterM12;
@@ -671,7 +671,7 @@ EXEC_TARGET ThreeComplex SpecialDalitzIntegrator::operator () (thrust::tuple<int
   unsigned int numResonances = indices[6]; 
   int effFunctionIdx = parIndexFromResIndex(numResonances); 
   //if (thrust::get<0>(t) == 19840) {internalDebug1 = BLOCKIDX; internalDebug2 = THREADIDX;}
-  //fptype eff = (*(reinterpret_cast<device_function_ptr>(device_function_table[indices[effFunctionIdx]])))(fakeEvt, cudaArray, paramIndices + indices[effFunctionIdx + 1]);
+  //fptype eff = (*(reinterpret_cast<device_function_ptr>(device_function_table[indices[effFunctionIdx]])))(fakeEvt, paramArray, paramIndices + indices[effFunctionIdx + 1]);
   fptype eff = callFunction(fakeEvt, indices[effFunctionIdx], indices[effFunctionIdx + 1]); 
   //if (thrust::get<0>(t) == 19840) {
   //internalDebug1 = -1; 

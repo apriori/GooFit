@@ -5,8 +5,8 @@
 // would be in PdfBase. 
 
 // Device-side, translation-unit constrained. 
-MEM_CONSTANT fptype cudaArray[maxParams];           // Holds device-side fit parameters. 
-MEM_CONSTANT unsigned int paramIndices[maxParams];  // Holds functor-specific indices into cudaArray. Also overloaded to hold integer constants (ie parameters that cannot vary.) 
+MEM_CONSTANT fptype paramArray[maxParams];           // Holds device-side fit parameters.
+MEM_CONSTANT unsigned int paramIndices[maxParams];  // Holds functor-specific indices into paramArray. Also overloaded to hold integer constants (ie parameters that cannot vary.)
 MEM_CONSTANT fptype functorConstants[maxParams];    // Holds non-integer constants. Notice that first entry is number of events. 
 MEM_CONSTANT fptype normalisationFactors[maxParams]; 
 
@@ -72,7 +72,7 @@ void abortWithCudaPrintFlush (std::string file, int line, std::string reason, co
 #ifdef CUDAPRINT
 __host__ void PdfBase::copyParams (const std::vector<double>& pars) const {
   if (host_callnumber < 1) {
-    std::cout << "Copying parameters: " << (long long) cudaArray << " ";
+    std::cout << "Copying parameters: " << (long long) paramArray << " ";
   }
   for (unsigned int i = 0; i < pars.size(); ++i) {
     host_params[i] = pars[i]; 
@@ -90,7 +90,7 @@ __host__ void PdfBase::copyParams (const std::vector<double>& pars) const {
   if (host_callnumber < 1) {
     std::cout << std::endl; 
   }
-  MEMCPY_TO_SYMBOL(cudaArray, host_params, pars.size()*sizeof(fptype), 0, cudaMemcpyHostToDevice); 
+  MEMCPY_TO_SYMBOL(paramArray, host_params, pars.size()*sizeof(fptype), 0, cudaMemcpyHostToDevice);
 }
 #else 
 __host__ void PdfBase::copyParams (const std::vector<double>& pars) const {
@@ -105,7 +105,7 @@ __host__ void PdfBase::copyParams (const std::vector<double>& pars) const {
     }
   }
 
-  MEMCPY_TO_SYMBOL(cudaArray, host_params, pars.size()*sizeof(fptype), 0, cudaMemcpyHostToDevice); 
+  MEMCPY_TO_SYMBOL(paramArray, host_params, pars.size()*sizeof(fptype), 0, cudaMemcpyHostToDevice);
 }
 #endif
 
@@ -158,7 +158,7 @@ __host__ void PdfBase::initialiseIndices (std::vector<unsigned int> pindices) {
   std::cout << " | " 
 	    << parameters << " " 
 	    << totalParams << " " 
-	    << cudaArray << " " 
+	    << paramArray << " "
 	    << paramIndices << " "
 	    << std::endl; 
   */

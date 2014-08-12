@@ -108,8 +108,8 @@ __device__ devcomplex<fptype> plainBW (fptype m12, fptype m13, fptype m23, unsig
   fptype meson_radius           = functorConstants[indices[1]+4];
   fptype mother_meson_radius    = functorConstants[indices[1]+5];
   
-  fptype resmass                = cudaArray[indices[2]];
-  fptype reswidth               = cudaArray[indices[3]];
+  fptype resmass                = paramArray[indices[2]];
+  fptype reswidth               = paramArray[indices[3]];
   unsigned int spin             = indices[4];
   unsigned int cyclic_index     = indices[5]; 
 
@@ -185,15 +185,15 @@ __device__ devcomplex<fptype> lass(fptype m12, fptype m13, fptype m23, unsigned 
   fptype daug2Mass              = functorConstants[indices[1]+2];
   fptype daug3Mass              = functorConstants[indices[1]+3];
 
-  fptype resmass                = cudaArray[indices[2]];
-  fptype reswidth               = cudaArray[indices[3]];
+  fptype resmass                = paramArray[indices[2]];
+  fptype reswidth               = paramArray[indices[3]];
   unsigned int cyclic_index     = indices[5];
   // extra LASS parameters
-  fptype lass_a                 = cudaArray[indices[6]];
-  fptype lass_r                 = cudaArray[indices[7]];
-  fptype lass_phi_f             = cudaArray[indices[8]];
-  fptype lass_phi_r             = cudaArray[indices[9]];
-  fptype lass_F                 = cudaArray[indices[10]];
+  fptype lass_a                 = paramArray[indices[6]];
+  fptype lass_r                 = paramArray[indices[7]];
+  fptype lass_phi_f             = paramArray[indices[8]];
+  fptype lass_phi_r             = paramArray[indices[9]];
+  fptype lass_F                 = paramArray[indices[10]];
   
   fptype q(twoBodyCMmom((PAIR_12 == cyclic_index ? m12 : (PAIR_13 == cyclic_index ? m13 : m23)),
                         (PAIR_23 == cyclic_index ? daug2Mass : daug1Mass),
@@ -227,15 +227,15 @@ __device__ devcomplex<fptype> polylass(fptype m12, fptype m13, fptype m23, unsig
   fptype daug2Mass              = functorConstants[indices[1]+2];
   fptype daug3Mass              = functorConstants[indices[1]+3];
   
-  fptype resmass                = cudaArray[indices[2]];
-  fptype reswidth               = cudaArray[indices[3]];
+  fptype resmass                = paramArray[indices[2]];
+  fptype reswidth               = paramArray[indices[3]];
   unsigned int cyclic_index     = indices[5];
   // extra LASS parameters
-  fptype lass_a                 = cudaArray[indices[6]];
-  fptype lass_r                 = cudaArray[indices[7]];
+  fptype lass_a                 = paramArray[indices[6]];
+  fptype lass_r                 = paramArray[indices[7]];
   unsigned int num_poly_coeffs  = indices[8];
   unsigned int formfactor_type  = indices[9];
-  // these are stored in cudaArray[indices[9]] .. cudaArray[indices[8 + num_poly_coeffs]]
+  // these are stored in paramArray[indices[9]] .. paramArray[indices[8 + num_poly_coeffs]]
   
   fptype rMassSq = (PAIR_12 == cyclic_index ? m12 : (PAIR_13 == cyclic_index ? m13 : m23));
   fptype q(twoBodyCMmom(rMassSq,
@@ -277,7 +277,7 @@ __device__ devcomplex<fptype> polylass(fptype m12, fptype m13, fptype m23, unsig
       // This should be a0*x*x + (1-a0)(a1*x + (1-a1))
       for(unsigned int poly_index = 0; poly_index <= num_poly_coeffs; ++poly_index)
       {
-        fptype coeff(poly_index == num_poly_coeffs ? 1.0 : cudaArray[indices[10 + poly_index]]);
+        fptype coeff(poly_index == num_poly_coeffs ? 1.0 : paramArray[indices[10 + poly_index]]);
         poly += pow(expansion_parameter, int(num_poly_coeffs - poly_index)) * coeff * coefffornext;
         coefffornext *= (1.0 - fabs(coeff));
      }
@@ -290,7 +290,7 @@ __device__ devcomplex<fptype> polylass(fptype m12, fptype m13, fptype m23, unsig
     poly = 1.0;
     for(unsigned int poly_index = 0; poly_index < num_poly_coeffs; ++poly_index)
     {
-      fptype coeff(cudaArray[indices[10 + poly_index]]);
+      fptype coeff(paramArray[indices[10 + poly_index]]);
       poly += pow(expansion_parameter, int(poly_index+1)) * coeff;
       norm += coeff;
     }
@@ -309,7 +309,7 @@ __device__ devcomplex<fptype> polylass(fptype m12, fptype m13, fptype m23, unsig
     fptype expansion_parameter(SQRT(rMassSq) / resmass);
     poly = pow(expansion_parameter, int(num_poly_coeffs)); // 2 coefficents: a + bx + xx
     for(unsigned int poly_index = 0; poly_index < num_poly_coeffs; ++poly_index)
-      poly += pow(expansion_parameter, int(poly_index)) * cudaArray[indices[10 + poly_index]];
+      poly += pow(expansion_parameter, int(poly_index)) * paramArray[indices[10 + poly_index]];
   }
   else if(formfactor_type == ResonancePdf::SENSIBLEPOLY)
   {
@@ -317,7 +317,7 @@ __device__ devcomplex<fptype> polylass(fptype m12, fptype m13, fptype m23, unsig
     poly = 0.0;
     fptype expansion_parameter(SQRT(rMassSq) / resmass);
     for(unsigned int poly_index = 0; poly_index < num_poly_coeffs; ++poly_index)
-      poly += cudaArray[indices[10 + poly_index]] * pow(expansion_parameter, int(poly_index));
+      poly += paramArray[indices[10 + poly_index]] * pow(expansion_parameter, int(poly_index));
   }
   else if(formfactor_type == ResonancePdf::EXPPOLY)
   {
@@ -331,7 +331,7 @@ __device__ devcomplex<fptype> polylass(fptype m12, fptype m13, fptype m23, unsig
       norm(2.0);
     for(unsigned int poly_index = 1; poly_index <= num_poly_coeffs; ++poly_index)
     {
-      fptype coeff(cudaArray[indices[9 + poly_index]]);
+      fptype coeff(paramArray[indices[9 + poly_index]]);
       if(poly_index == 1)
         poly += coeff * x;
       else if(poly_index == 2)
@@ -352,7 +352,7 @@ __device__ devcomplex<fptype> polylass(fptype m12, fptype m13, fptype m23, unsig
     printf("Unknown form factor type requested\n");
   }
       
-  // poly += pow(expansion_parameter, int(poly_index)) * cudaArray[indices[8 + poly_index]];
+  // poly += pow(expansion_parameter, int(poly_index)) * paramArray[indices[8 + poly_index]];
   
   ret *= poly;
   return ret;
@@ -416,13 +416,13 @@ __device__ devcomplex<fptype> flatte_rhohelper(fptype m, fptype rMassSq)
 // g_i in the a(0)(980) case but not the f(0)(980) case, but I don't understand why this must be the case
 __device__ devcomplex<fptype> flatte(fptype m12, fptype m13, fptype m23, unsigned int* indices)
 {
-  fptype resmass                = cudaArray[indices[2]];
+  fptype resmass                = paramArray[indices[2]];
   unsigned int cyclic_index     = indices[3];
   unsigned int square_couplings = indices[4];
   unsigned int a_meson          = indices[5];
   unsigned int charged_meson    = indices[6];
-  fptype g_1                    = cudaArray[indices[7]];
-  fptype g_KK_over_g_1          = cudaArray[indices[8]];
+  fptype g_1                    = paramArray[indices[7]];
+  fptype g_KK_over_g_1          = paramArray[indices[8]];
   
   fptype rMassSq = (PAIR_12 == cyclic_index ? m12 : (PAIR_13 == cyclic_index ? m13 : m23));
   const fptype mK0(0.497614), mK(0.493677), mPi(0.13957018), mPi0(0.1349766), mEta(0.547862);
@@ -485,8 +485,8 @@ __device__ devcomplex<fptype> flatte(fptype m12, fptype m13, fptype m23, unsigne
 
 __device__ devcomplex<fptype> gaussian (fptype m12, fptype m13, fptype m23, unsigned int* indices) {
   // indices[1] is unused constant index, for consistency with other function types. 
-  fptype resmass                = cudaArray[indices[2]];
-  fptype reswidth               = cudaArray[indices[3]];
+  fptype resmass                = paramArray[indices[2]];
+  fptype reswidth               = paramArray[indices[3]];
   unsigned int cyclic_index     = indices[4]; 
 
   // Notice sqrt - this function uses mass, not mass-squared like the other resonance types. 
@@ -559,9 +559,9 @@ __device__ devcomplex<fptype> gouSak (fptype m12, fptype m13, fptype m23, unsign
   fptype meson_radius           = functorConstants[indices[1]+4];
   fptype mother_meson_radius    = functorConstants[indices[1]+5];
 
-  fptype resmass                = cudaArray[indices[2]];
+  fptype resmass                = paramArray[indices[2]];
   fptype resmassSq              = resmass*resmass;
-  fptype reswidth               = cudaArray[indices[3]];
+  fptype reswidth               = paramArray[indices[3]];
   unsigned int spin             = indices[4];
   unsigned int cyclic_index     = indices[5]; 
 
