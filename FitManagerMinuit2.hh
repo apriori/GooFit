@@ -20,8 +20,8 @@ public:
   PdfFunctionProxy(const PdfFunctionProxy& other);
   virtual IBaseFunctionMultiDim* Clone() const;
   virtual ~PdfFunctionProxy() {}
-
   virtual unsigned int NDim() const { return dim; }
+  virtual void setParamMapArraySize(size_t size);
 
 private:
 
@@ -32,6 +32,7 @@ private:
   PdfBase& pdfRef;
   unsigned int dim;
   std::vector<Variable*> vars;
+  mutable std::vector<fptype> pars;
 };
 
 class FitManager {

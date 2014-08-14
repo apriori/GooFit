@@ -1,11 +1,11 @@
 #include "FitManagerMinuit2.hh"
 #include <cstdlib>
 
-
 PdfFunctionProxy::PdfFunctionProxy(PdfBase& pdf)
  : pdfRef(pdf)
  , dim(pdf.getParameters().size())
  , vars(pdf.getParameters()) {
+  std::sort(vars.begin(), vars.end(), variableIndexCompare);
 }
 
 PdfFunctionProxy::PdfFunctionProxy(PdfFunctionProxy &other)
@@ -26,15 +26,17 @@ ROOT::Math::IBaseFunctionMultiDim* PdfFunctionProxy::Clone() const {
   return new PdfFunctionProxy(*this);
 }
 
+void PdfFunctionProxy::setParamMapArraySize(size_t size) {
+  pars.resize(size, static_cast<fptype>(0.0));
+}
+
 double PdfFunctionProxy::DoEval(const double* x) const {
-  vector<double> gooPars; // Translates from Minuit indexing to GooFit indexing
-  auto vars = pdfRef.getParameters();
-  gooPars.resize(dim);
-  for (auto i = vars.begin(); i != vars.end(); ++i) {
-    gooPars[(*i)->index] = x[(*i)->index];
+  size_t counter = 0;
+  for (auto i = vars.begin(); i != vars.end(); ++i, counter++) {
+    pars[(*i)->index] = x[counter];
   }
 
-  pdfRef.copyParams(gooPars);
+  pdfRef.copyParams(pars);
   double nll = pdfRef.calculateNLL();
   host_callnumber++;
 
@@ -60,17 +62,23 @@ FitManager::FitManager(PdfBase *dat, ROOT::Minuit2::EMinimizerType minmizerType,
 ROOT::Minuit2::FunctionMinimum* FitManager::fit () {
   minimizer->Clear();
 
-  for (auto i = vars.begin(); i != vars.end(); ++i) {
+  size_t counter = 0;
+  int maxIndexSize = 0;
+  for (auto i = vars.begin(); i != vars.end(); ++i, counter++) {
     auto var = (*i);
 
     if (((*i)->lowerlimit == (*i)->upperlimit) || var->fixed) {
-      minimizer->SetFixedVariable(var->index, var->name, var->value);
+      minimizer->SetFixedVariable(counter, var->name, var->value);
     }
     else {
-      minimizer->SetLimitedVariable(var->index, var->name, var->value, var->error, var->lowerlimit, var->upperlimit);
+      minimizer->SetLimitedVariable(counter, var->name, var->value, var->error, var->lowerlimit, var->upperlimit);
+    }
+
+    if ((*i)->index > maxIndexSize) {
+      maxIndexSize = (*i)->index;
     }
   }
-
+  pdfProxy->setParamMapArraySize(maxIndexSize + 1);
   minimizer->SetMaxFunctionCalls(minimizer->NFree() * 500);
   minimizer->SetMaxIterations(minimizer->NFree() * 500);
 
