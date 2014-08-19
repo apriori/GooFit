@@ -36,6 +36,8 @@ struct Variable : Indexable {
   Variable (std::string n, fptype v, fptype dn, fptype up);
   Variable (std::string n, fptype v, fptype e, fptype dn, fptype up);
 
+  bool hasConstantValue(fptype val) { return fixed && value == val; }
+
   /*
   template<typename iter>
   iter begin();

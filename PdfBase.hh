@@ -53,7 +53,8 @@ public:
 
   typedef std::vector<Variable*> parCont; 
   typedef parCont::iterator parIter; 
-  typedef parCont::const_iterator parConstIter; 
+  typedef parCont::const_iterator parConstIter;
+  typedef std::vector<const PdfBase*> ComponentCont;
 
   __host__ void addSpecialMask (int m) {specialMask |= m;}
   __host__ void copyParams (const std::vector<double>& pars) const;
@@ -102,7 +103,7 @@ public:
   void clearCurrentFit (); 
 
 protected:
-  __host__ void initializeSetVarProduct();
+   __host__ void initializeSetVarProduct();
 
   VariableValuesSet setVariableProduct;
   fptype numEvents;         // Non-integer to allow weighted events
