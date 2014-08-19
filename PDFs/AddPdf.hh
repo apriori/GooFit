@@ -11,11 +11,13 @@ public:
   virtual ~AddPdf() {}
   __host__ virtual fptype normalise () const;
   __host__ virtual bool hasAnalyticIntegral () const {return false;}
+  __host__ std::vector<Variable*> getWeights() const { return weights; }
 
 protected:
   __host__ virtual double sumOfNll (int numVars) const;
 
 private:
+  std::vector<Variable*> weights;
   bool extended; 
 };
 
