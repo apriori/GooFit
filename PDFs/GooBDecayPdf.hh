@@ -4,23 +4,35 @@
 #include "GooPdf.hh"
 //#include "ConvolutionPdf.hh"
 
+typedef fptype (*BDecayNormFunction)(fptype t,
+                                     fptype tag,
+                                     fptype parS,
+                                     fptype parC,
+                                     fptype parOmega,
+                                     fptype tau,
+                                     fptype f0,
+                                     fptype f1,
+                                     fptype dm);
+
 class GooBDecayInternal : public GooPdf {
 public:
-    GooBDecayInternal (std::string n,
-                       Variable* dt,
-                       Variable* tag,
-                       Variable* parS,
-                       Variable* parC,
-                       Variable* parOmega,
-                       Variable* tau,
-                       Variable* dgamma,
-                       Variable* f0,
-                       Variable* f1,
-                       Variable* dm
-                       );
-    virtual fptype integrate (fptype lo, fptype hi) const;
-    virtual ~GooBDecayInternal() {}
-    __host__ virtual bool hasAnalyticIntegral () const { return true; }
+  GooBDecayInternal (std::string n,
+                     Variable* dt,
+                     Variable* tag,
+                     Variable* parS,
+                     Variable* parC,
+                     Variable* parOmega,
+                     Variable* tau,
+                     Variable* dgamma,
+                     Variable* f0,
+                     Variable* f1,
+                     Variable* dm
+                     );
+  virtual fptype integrate (fptype lo, fptype hi) const;
+  virtual ~GooBDecayInternal() {}
+  __host__ virtual bool hasAnalyticIntegral () const { return true; }
+private:
+  BDecayNormFunction normFunction;
 };
 
 /*

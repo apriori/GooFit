@@ -26,11 +26,11 @@ EXEC_TARGET fptype device_GooBDecay(fptype* evt, fptype* p, unsigned int* indice
   fptype cos_ = COS(dmt);
   fptype sin_ = SIN(dmt);
 
-  return exp(-t/tau) *  (f0 * cosh_
-                        +f1 * sinh_
-                        +f2 * cos_
-                        +f3 * sin_
-                        );
+  return EXP(-t/tau) * (f0 * cosh_
+                       +f1 * sinh_
+                       +f2 * cos_
+                       +f3 * sin_
+                       );
 }
 
 MEM_DEVICE device_function_ptr ptr_to_BDecay = device_GooBDecay;
@@ -49,7 +49,6 @@ GooBDecayInternal::GooBDecayInternal(std::string n,
     Variable* dm
     )
   : GooPdf(dt, n) {
-    tag->fixed = true;
     registerObservable(tag);
 
     std::vector<unsigned int> pindices;
@@ -65,6 +64,7 @@ GooBDecayInternal::GooBDecayInternal(std::string n,
     initialise(pindices);
 }
 
+//Special case 1, dg = 0 (const), f0 = 1 (cosh)
 __host__ fptype bdecayNorm(fptype t,
                            fptype tag,
                            fptype parS,
@@ -134,9 +134,9 @@ fptype GooBDecayInternal::integrate(fptype lo, fptype hi) const {
                    host_params[indices[7]],
                    host_params[indices[8]]
                     );
-  return hiInt2 + hiInt - loInt - loInt2;
-  //fptype ttau = host_params[indices[4]];
-  //return 2.0*-ttau * (exp(-hi/ttau) - exp(-lo/ttau));
+  //return hiInt2 + hiInt - loInt - loInt2;
+  fptype ttau = host_params[indices[4]];
+  return 2.0*-ttau * (exp(-hi/ttau) - exp(-lo/ttau));
   //return hiInt - loInt;
 }
 
