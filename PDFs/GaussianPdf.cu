@@ -52,7 +52,7 @@ __host__ fptype GaussianPdf::integrate (fptype lo, fptype hi) const {
 
   // Integral over all R. 
   fptype sigma = host_params[indices[2]];
-  sigma *= root2*rootPi;
+  sigma *= M_SQRT2*rootPi;
   return sigma; 
 }
 

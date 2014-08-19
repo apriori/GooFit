@@ -21,7 +21,7 @@ EXEC_TARGET fptype device_PhaseDiffConstraint (fptype* evt, fptype* p, unsigned 
     diff += 2.0*Pi;
   diff /= sigma;
 
-  fptype ret(EXP(-diff*diff*0.5) * invRootPi / (sigma * root2));
+  fptype ret(EXP(-diff*diff*0.5) * invRootPi / (sigma * M_SQRT2));
   //printf("PhaseDifferenceConstraintPdf concluded %f sigma from expected (a,b,m,s) = (%f,%f,%f,%f)\n",
   //    FABS(diff), PDFaValue, PDFbValue, mean, sigma);
   return ret;

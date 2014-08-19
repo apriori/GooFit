@@ -52,7 +52,7 @@ __host__ fptype GaussianNoObsPdf::integrate (fptype lo, fptype hi) const
 
   // Integral over all R. 
   fptype sigma = host_params[indices[3]];
-  sigma *= root2*rootPi; // root2 is a #define
+  sigma *= M_SQRT2*rootPi; // root2 is a #define
   return sigma;
 }
 

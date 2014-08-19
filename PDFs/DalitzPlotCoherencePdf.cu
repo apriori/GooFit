@@ -139,7 +139,7 @@ EXEC_TARGET fptype device_DalitzPlotCoherence (fptype* evt, fptype* p, unsigned 
       if(pair_flagval == DalitzPlotCoherencePdf::GAUSSIAN_AMPLITUDE_CONSTRAINT)
       {
         fptype coherence_norm(norm(coherence));
-        ret = EXP(-(coherence_norm - coherence_constraint)*(coherence_norm - coherence_constraint)/(2.0*coherence_error*coherence_error))*invRootPi/(root2*coherence_error);
+        ret = EXP(-(coherence_norm - coherence_constraint)*(coherence_norm - coherence_constraint)/(2.0*coherence_error*coherence_error))*invRootPi/(M_SQRT2*coherence_error);
       }
       else if(pair_flagval == DalitzPlotCoherencePdf::RAW_AMPLITUDE_VALUE)
       {
