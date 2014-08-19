@@ -319,6 +319,7 @@ __host__ void GooPdf::scan (Variable* var,
   fptype* obsRanges = 0;
   gooMalloc((void**)&obsRanges, 3 * observables.size() * sizeof(fptype) * sampleBins);
 
+  /*
   //generate x values
   thrust::device_vector<fptype> gpuXvalues(sampleBins);
   thrust::sequence(gpuXvalues.begin(), gpuXvalues.end(), var->lowerlimit, step);
@@ -361,6 +362,7 @@ __host__ void GooPdf::scan (Variable* var,
   }
 
   gooFree(obsRanges);
+  */
 }
 
 __host__ void GooPdf::setParameterConstantness (bool constant) {
