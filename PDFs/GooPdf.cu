@@ -229,19 +229,77 @@ __host__ void GooPdf::evaluateAtPoints (Variable* var, std::vector<fptype>& res)
   copyParams(); 
   normalise(); 
   MEMCPY_TO_SYMBOL(normalisationFactors, host_normalisation, totalParams*sizeof(fptype), 0, cudaMemcpyHostToDevice); 
+
   UnbinnedDataSet tempdata(observables);
+
+  PdfBase::SetObsCont setObservables;
+  getSetObservables(setObservables);
+
+  VariableValuesSet setVariableSet = getSetVariableProduct();
+  PdfBase::obsCont allOtherObservables = observables;
+  allOtherObservables.erase(std::remove(allOtherObservables.begin(),
+                                        allOtherObservables.end(), var),
+                            allOtherObservables.end());
+  PdfBase::SetObsConstIter setObsIter = setObservables.begin();
+
+  //remove all set variable from observables list
+  for (; setObsIter != setObservables.end(); ++setObsIter) {
+    allOtherObservables.erase(std::remove(allOtherObservables.begin(),
+                                        allOtherObservables.end(),
+                                        static_cast<Variable*>(*setObsIter)),
+                              allOtherObservables.end());
+  }
+
 
   double step = (var->upperlimit - var->lowerlimit) / var->numbins; 
   for (int i = 0; i < var->numbins; ++i) {
     var->value = var->lowerlimit + (i+0.5)*step;
-    tempdata.addEvent(); 
+    PdfBase::obsIter otherObsIter = allOtherObservables.begin();
+
+
+    if (allOtherObservables.size() > 0) {
+      for (; otherObsIter != allOtherObservables.end(); ++otherObsIter) {
+        Variable* otherObs = *otherObsIter;
+        double otherObsStep = (otherObs->upperlimit - otherObs->lowerlimit) / otherObs->numbins;
+
+        for (int j = 0; j < otherObs->numbins; ++j) {
+          otherObs->value = otherObs->lowerlimit + (j+0.5) * otherObsStep;
+          VariableValuesSet::iterator it = setVariableSet.begin();
+
+          for (; it != setVariableSet.end(); ++it) {
+            VariableValues::iterator varSetIter = it->begin();
+            size_t idx = 0;
+
+            for (; varSetIter != it->end(); ++varSetIter, ++idx) {
+              SetVariable* setVariable = setObservables[idx];
+              setVariable->value = *varSetIter;
+              tempdata.addEvent();
+            }
+          }
+        }
+      }
+    }
+    else {
+      VariableValuesSet::iterator it = setVariableSet.begin();
+
+      for (; it != setVariableSet.end(); ++it) {
+        VariableValues::iterator varSetIter = it->begin();
+        size_t idx = 0;
+
+        for (; varSetIter != it->end(); ++varSetIter, ++idx) {
+          SetVariable* setVariable = setObservables[idx];
+          setVariable->value = *varSetIter;
+          tempdata.addEvent();
+        }
+      }
+    }
   }
   setData(&tempdata);  
  
   thrust::counting_iterator<int> eventIndex(0); 
   thrust::constant_iterator<int> eventSize(observables.size()); 
   thrust::constant_iterator<fptype*> arrayAddress(dev_event_array);
-  thrust::device_vector<fptype> results(var->numbins); 
+  thrust::device_vector<fptype> results(tempdata.numEvents());
 
   MetricTaker evalor(this, getMetricPointer("ptr_to_Eval")); 
   thrust::transform(thrust::make_zip_iterator(thrust::make_tuple(eventIndex, arrayAddress, eventSize)),
@@ -252,8 +310,22 @@ __host__ void GooPdf::evaluateAtPoints (Variable* var, std::vector<fptype>& res)
   thrust::host_vector<fptype> h_results = results; 
   res.clear();
   res.resize(var->numbins);
-  for (int i = 0; i < var->numbins; ++i) {
-    res[i] = h_results[i] * host_normalisation[parameters];
+
+  size_t chunkSize = 1;
+
+  if (setVariableSet.size() > 0) {
+    chunkSize = setVariableSet.size();
+  }
+
+  //chunked loop
+  for (size_t i = 0; i < h_results.size(); i+=chunkSize) {
+    double intermediateSum = 0;
+
+    for (size_t j = i; j <= i + setObservables.size() && j < h_results.size(); ++j) {
+      intermediateSum += h_results[j];
+    }
+
+    res[i/chunkSize] = intermediateSum * host_normalisation[parameters];
   }
 }
 

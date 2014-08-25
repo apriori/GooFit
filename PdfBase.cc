@@ -122,6 +122,16 @@ __host__ void PdfBase::getObservables (std::vector<Variable*>& ret) const {
   }
 }
 
+__host__ void PdfBase::getSetObservables (PdfBase::SetObsCont& ret) const {
+  for (SetObsConstIter p = setObservables.cbegin(); p != setObservables.cend(); ++p) {
+    if (std::find(ret.begin(), ret.end(), *p) != ret.end()) continue;
+    ret.push_back(*p);
+  }
+  for (unsigned int i = 0; i < components.size(); ++i) {
+    components[i]->getSetObservables(ret);
+  }
+}
+
 __host__ unsigned int PdfBase::registerConstants (unsigned int amount) {
   assert(totalConstants + amount < maxParams);
   cIndex = totalConstants;
@@ -131,15 +141,19 @@ __host__ unsigned int PdfBase::registerConstants (unsigned int amount) {
 
 void PdfBase::registerObservable (Variable* obs) {
   if (!obs) return;
+
+  if (obs->isCategoryConstant) {
+      registerObservable(static_cast<SetVariable*>(obs));
+  }
+
   if (find(observables.begin(), observables.end(), obs) != observables.end()) return; 
   observables.push_back(obs);
 }
 
 void PdfBase::registerObservable (SetVariable* obs) {
   if (!obs) return;
-  if (find(discreteObservables.begin(), discreteObservables.end(), obs) != discreteObservables.end()) return;
-  discreteObservables.push_back(obs);
-  registerObservable(static_cast<Variable*>(obs));
+  if (find(setObservables.begin(), setObservables.end(), obs) != setObservables.end()) return;
+  setObservables.push_back(obs);
 }
 
 __host__ void PdfBase::setIntegrationFineness (int i) {
@@ -186,7 +200,7 @@ __host__ fptype* PdfBase::storeParameters (fptype *cache) const {
 }
 
 __host__ void PdfBase::initializeSetVarProduct() {
-  VariableCartesianProduct product(discreteObservables);
+  VariableCartesianProduct product(setObservables);
   setVariableProduct = product.calculateCartersianProduct();
 }
  

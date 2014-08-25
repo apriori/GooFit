@@ -48,8 +48,8 @@ public:
   typedef obsCont::iterator obsIter;
   typedef obsCont::const_iterator obsConstIter;
   typedef std::vector<SetVariable*> SetObsCont;
-  typedef obsCont::iterator SetObsIter;
-  typedef obsCont::const_iterator SetObsConstIter;
+  typedef SetObsCont::iterator SetObsIter;
+  typedef SetObsCont::const_iterator SetObsConstIter;
 
   typedef std::vector<Variable*> parCont; 
   typedef parCont::iterator parIter; 
@@ -62,7 +62,8 @@ public:
   __host__ void copyNormFactors () const;
   __host__ void generateNormRange (); 
   __host__ std::string getName () const {return name;} 
-  __host__ virtual void getObservables (obsCont& ret) const; 
+  __host__ virtual void getObservables (obsCont& ret) const;
+  __host__ virtual void getSetObservables (SetObsCont& ret) const;
   __host__ virtual PdfBase::parCont getParameters () const;
   __host__ virtual void getParameters (parCont& ret) const;
   __host__ Variable* getParameterByName (string n) const; 
@@ -101,6 +102,7 @@ public:
 
   __host__ void checkInitStatus (std::vector<std::string>& unInited) const; 
   void clearCurrentFit (); 
+  __host__ VariableValuesSet getSetVariableProduct() const { return setVariableProduct; }
 
 protected:
    __host__ void initializeSetVarProduct();
@@ -112,7 +114,7 @@ protected:
   unsigned int parameters;  // Stores index, in 'paramIndices', where this functor's information begins. 
   unsigned int cIndex;      // Stores location of constants. 
   obsCont observables;
-  SetObsCont discreteObservables;
+  SetObsCont setObservables;
   parCont parameterList;
   FitControl* fitControl; 
   std::vector<PdfBase*> components;
