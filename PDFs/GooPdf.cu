@@ -201,7 +201,7 @@ __host__ double GooPdf::calculateNLL () const {
   if (host_normalisation[parameters] <= 0) 
     abortWithCudaPrintFlush(__FILE__, __LINE__, getName() + " non-positive normalisation", this);
 
-  MEMCPY_TO_SYMBOL(normalisationFactors, host_normalisation, totalParams*sizeof(fptype), 0, cudaMemcpyHostToDevice); 
+  MEMCPY_TO_SYMBOL(normalisationFactors, host_normalisation, totalParams*sizeof(fptype), 0, cudaMemcpyHostToDevice);
   SYNCH(); // Ensure normalisation integrals are finished
 
   int numVars = observables.size(); 
@@ -242,7 +242,7 @@ __host__ void GooPdf::evaluateAtPoints (Variable* var, std::vector<fptype>& res)
                             allOtherObservables.end());
   PdfBase::SetObsConstIter setObsIter = setObservables.begin();
 
-  //remove all set variable from observables list
+  //remove all set variables from observables list
   for (; setObsIter != setObservables.end(); ++setObsIter) {
     allOtherObservables.erase(std::remove(allOtherObservables.begin(),
                                         allOtherObservables.end(),
@@ -256,11 +256,11 @@ __host__ void GooPdf::evaluateAtPoints (Variable* var, std::vector<fptype>& res)
     var->value = var->lowerlimit + (i+0.5)*step;
     PdfBase::obsIter otherObsIter = allOtherObservables.begin();
 
-
     if (allOtherObservables.size() > 0) {
       for (; otherObsIter != allOtherObservables.end(); ++otherObsIter) {
         Variable* otherObs = *otherObsIter;
         double otherObsStep = (otherObs->upperlimit - otherObs->lowerlimit) / otherObs->numbins;
+        double initialValue = otherObs->value;
 
         for (int j = 0; j < otherObs->numbins; ++j) {
           otherObs->value = otherObs->lowerlimit + (j+0.5) * otherObsStep;
@@ -277,9 +277,10 @@ __host__ void GooPdf::evaluateAtPoints (Variable* var, std::vector<fptype>& res)
             }
           }
         }
+        otherObs->value = initialValue;
       }
     }
-    else {
+    else if (setVariableSet.size() > 0) {
       VariableValuesSet::iterator it = setVariableSet.begin();
 
       for (; it != setVariableSet.end(); ++it) {
@@ -293,8 +294,13 @@ __host__ void GooPdf::evaluateAtPoints (Variable* var, std::vector<fptype>& res)
         }
       }
     }
+    else {
+      tempdata.addEvent();
+    }
   }
   setData(&tempdata);  
+
+  std::cout << "numevents is " << tempdata.numEvents() << std::endl;
  
   thrust::counting_iterator<int> eventIndex(0); 
   thrust::constant_iterator<int> eventSize(observables.size()); 
