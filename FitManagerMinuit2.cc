@@ -12,14 +12,12 @@ PdfFunctionProxy::PdfFunctionProxy(PdfFunctionProxy &other)
  : pdfRef(other.pdfRef)
  , dim(other.dim)
  , vars(other.vars) {
-
 }
 
 PdfFunctionProxy::PdfFunctionProxy(const PdfFunctionProxy& other)
  : pdfRef(other.pdfRef)
  , dim(other.dim)
  , vars(other.vars) {
-
 }
 
 ROOT::Math::IBaseFunctionMultiDim* PdfFunctionProxy::Clone() const {
@@ -51,7 +49,7 @@ FitManager::FitManager(PdfBase *dat, ROOT::Minuit2::EMinimizerType minmizerType,
   minimizer->SetFunction(*pdfProxy);
   minimizer->SetDefaultOptions();
   minimizer->SetStrategy(strategy);
-  minimizer->SetPrecision(std::numeric_limits<fptype>::epsilon());
+  //minimizer->SetPrecision(std::numeric_limits<fptype>::epsilon());
   minimizer->SetTolerance(1.0);
   minimizer->SetPrintLevel(1);
 
@@ -59,7 +57,7 @@ FitManager::FitManager(PdfBase *dat, ROOT::Minuit2::EMinimizerType minmizerType,
 }
 
 
-ROOT::Minuit2::FunctionMinimum* FitManager::fit () {
+bool FitManager::fit() {
   minimizer->Clear();
 
   size_t counter = 0;
@@ -82,11 +80,7 @@ ROOT::Minuit2::FunctionMinimum* FitManager::fit () {
   minimizer->SetMaxFunctionCalls(minimizer->NFree() * 500);
   minimizer->SetMaxIterations(minimizer->NFree() * 500);
 
-  if (minimizer->Minimize()) {
-    return NULL;
-  }
-
-  return NULL;
+  return minimizer->Minimize() && minimizer->Hesse();
 }
 
 

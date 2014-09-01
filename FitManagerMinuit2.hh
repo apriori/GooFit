@@ -41,7 +41,7 @@ public:
   ROOT::Minuit2::Minuit2Minimizer* getMinimizer() { return minimizer; }
 
 
-  ROOT::Minuit2::FunctionMinimum* fit (); 
+  bool fit ();
   void getMinuitValues () const;
   virtual ~FitManager();
 
