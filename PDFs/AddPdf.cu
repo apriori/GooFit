@@ -65,7 +65,8 @@ EXEC_TARGET fptype device_AddPdfsExt (fptype* evt, fptype* p, unsigned long* ind
 
 
 #else
-#include <bulk/bulk.hpp>
+#include <thrust/system/cuda/detail/bulk.h>
+using namespace thrust::system::cuda::detail;
 EXEC_TARGET fptype device_AddPdfs (fptype* evt, fptype* p, unsigned long* indices) {
   /*
   int components = indices[0];
@@ -305,7 +306,7 @@ struct AddPdfEval {
   }
 
   EXEC_TARGET
-  void operator()(bulk::agent<> &self,
+  void operator()(bulk_::agent<> &self,
                   thrust::device_ptr<fptype> y,
                   thrust::device_ptr<thrust::tuple<int, int> > fIdx,
                   thrust::constant_iterator<fptype*> events
@@ -380,9 +381,9 @@ void AddPdf::preEvaluateComponents() const {
   functionAndParamIndices = functionAndParamIndices_host;
 
   AddPdfEval eval(numEntries);
-  bulk::async(bulk::par(components.size() * numEntries),
+  bulk_::async(bulk_::par(components.size() * numEntries),
               eval,
-              bulk::root.this_exec,
+              bulk_::root.this_exec,
               componentValues->data(),
               functionAndParamIndices.data(),
               arrayAddress).wait();

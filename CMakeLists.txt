@@ -3,7 +3,6 @@ project(GooFit)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/thrust)
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/bulk)
 
 
 find_package(CUDA)
@@ -71,7 +70,7 @@ endif(${APPLE})
  endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_STD} -pedantic -Wall -Wextra -fPIC -Wno-unused-parameter")
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-I${CMAKE_CURRENT_SOURCE_DIR}/thrust -I${CMAKE_CURRENT_SOURCE_DIR}/bulk;${NVCC_STDLIB})
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-I${CMAKE_CURRENT_SOURCE_DIR}/thrust;${NVCC_STDLIB})
 set(CMAKE_EXE_LINKER_FLAGS "${CXX_STDLIB} ${CXX_STD}")
 
 
