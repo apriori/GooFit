@@ -3,7 +3,7 @@
 //#include "ConvolutionPdf.hh"
 #include <cstdio>
 
-EXEC_TARGET fptype device_GooBDecay(fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_GooBDecay(fptype* evt, fptype* p, unsigned long* indices) {
   fptype t        = evt[indices[2 + indices[0]]];
   fptype tag      = evt[indices[2 + indices[0] + 1]];
   fptype parS     = p[indices[1]];
@@ -51,7 +51,7 @@ GooBDecayInternal::GooBDecayInternal(std::string n,
   : GooPdf(dt, n) {
     registerObservable(tag);
 
-    std::vector<unsigned int> pindices;
+    std::vector<unsigned long> pindices;
     pindices.push_back(registerParameter(parS));
     pindices.push_back(registerParameter(parC));
     pindices.push_back(registerParameter(parOmega));
@@ -93,7 +93,7 @@ __host__ fptype bdecayNorm(fptype t,
 
 fptype GooBDecayInternal::integrate(fptype lo, fptype hi) const {
   lo = std::max(lo, (fptype)0.0);
-  unsigned int* indices = host_indices + parameters;
+  unsigned long* indices = host_indices + parameters;
   fptype hiInt = bdecayNorm(hi,
                     1,
                     host_params[indices[1]],

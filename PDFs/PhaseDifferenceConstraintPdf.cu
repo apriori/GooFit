@@ -1,6 +1,6 @@
 #include "PhaseDifferenceConstraintPdf.hh"
 
-EXEC_TARGET fptype device_PhaseDiffConstraint (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_PhaseDiffConstraint (fptype* evt, fptype* p, unsigned long* indices) {
   unsigned int
     PDFaFcnIndex(indices[1]),
     PDFaParIndex(indices[2]),
@@ -37,7 +37,7 @@ __host__ PhaseDifferenceConstraintPdf::PhaseDifferenceConstraintPdf(const std::s
     )
   : GooPdf(0, n) 
 {
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(pdfa->getFunctionIndex());
   pindices.push_back(pdfa->getParameterIndex());
   pindices.push_back(pdfb->getFunctionIndex());

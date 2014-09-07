@@ -2,7 +2,7 @@
 
 EXEC_TARGET fptype device_truth_resolution (fptype coshterm, fptype costerm, fptype sinhterm, fptype sinterm, 
 					   fptype tau, fptype dtime, fptype xmixing, fptype ymixing, fptype /*sigma*/, 
-					   fptype* /*p*/, unsigned int* /*indices*/) { 
+                       fptype* /*p*/, unsigned long* /*indices*/) {
   fptype ret = 0;
   dtime /= tau; 
   ret += coshterm*COSH(ymixing * dtime);

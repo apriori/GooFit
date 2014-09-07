@@ -23,12 +23,12 @@ void printMemoryStatus (std::string file, int line) {
 
 
 
-EXEC_TARGET fptype calculateEval (fptype rawPdf, fptype* evtVal, unsigned int par) {
+EXEC_TARGET fptype calculateEval (fptype rawPdf, fptype* evtVal, unsigned long par) {
   // Just return the raw PDF value, for use in (eg) normalisation. 
   return rawPdf; 
 }
 
-EXEC_TARGET fptype calculateNLL (fptype rawPdf, fptype* evtVal, unsigned int par) {
+EXEC_TARGET fptype calculateNLL (fptype rawPdf, fptype* evtVal, unsigned long par) {
   //if ((10 > callnumber) && (THREADIDX < 10) && (BLOCKIDX == 0)) cuPrintf("calculateNll %i %f %f %f\n", callnumber, rawPdf, normalisationFactors[par], rawPdf*normalisationFactors[par]);
   //if (THREADIDX < 50) printf("Thread %i %f %f\n", THREADIDX, rawPdf, normalisationFactors[par]); 
   rawPdf *= normalisationFactors[par];
@@ -37,12 +37,12 @@ EXEC_TARGET fptype calculateNLL (fptype rawPdf, fptype* evtVal, unsigned int par
   return rawPdf > 0 ? -LOG(rawPdf) : (rawPdf == 0.0 ? 1e3 : 0); 
 }
 
-EXEC_TARGET fptype calculateProb (fptype rawPdf, fptype* evtVal, unsigned int par) {
+EXEC_TARGET fptype calculateProb (fptype rawPdf, fptype* evtVal, unsigned long par) {
   // Return probability, ie normalised PDF value.
   return rawPdf * normalisationFactors[par];
 }
 
-EXEC_TARGET fptype calculateBinAvg (fptype rawPdf, fptype* evtVal, unsigned int par) {
+EXEC_TARGET fptype calculateBinAvg (fptype rawPdf, fptype* evtVal, unsigned long par) {
   rawPdf *= normalisationFactors[par];
   rawPdf *= evtVal[1]; // Bin volume 
   // Log-likelihood of numEvents with expectation of exp is (-exp + numEvents*ln(exp) - ln(numEvents!)). 
@@ -54,7 +54,7 @@ EXEC_TARGET fptype calculateBinAvg (fptype rawPdf, fptype* evtVal, unsigned int 
   return 0; 
 }
 
-EXEC_TARGET fptype calculateBinWithError (fptype rawPdf, fptype* evtVal, unsigned int par) {
+EXEC_TARGET fptype calculateBinWithError (fptype rawPdf, fptype* evtVal, unsigned long par) {
   // In this case interpret the rawPdf as just a number, not a number of events. 
   // Do not divide by integral over phase space, do not multiply by bin volume, 
   // and do not collect 200 dollars. evtVal should have the structure (bin entry, bin error). 
@@ -65,7 +65,7 @@ EXEC_TARGET fptype calculateBinWithError (fptype rawPdf, fptype* evtVal, unsigne
   return rawPdf; 
 }
 
-EXEC_TARGET fptype calculateChisq (fptype rawPdf, fptype* evtVal, unsigned int par) {
+EXEC_TARGET fptype calculateChisq (fptype rawPdf, fptype* evtVal, unsigned long par) {
   rawPdf *= normalisationFactors[par];
   rawPdf *= evtVal[1]; // Bin volume 
 
@@ -133,7 +133,7 @@ __host__ int GooPdf::findFunctionIdx (void* dev_functionPtr) {
   return fIdx; 
 }
 
-__host__ void GooPdf::initialise (std::vector<unsigned int> pindices, void* dev_functionPtr) {
+__host__ void GooPdf::initialise (std::vector<unsigned long> pindices, void* dev_functionPtr) {
   if (!fitControl) setFitControl(new UnbinnedNllFit()); 
 
   // MetricTaker must be created after PdfBase initialisation is done.
@@ -557,7 +557,7 @@ __host__ fptype GooPdf::normalise () const {
 
 #ifdef PROFILING
 MEM_CONSTANT fptype conversion = (1.0 / CLOCKS_PER_SEC);
-EXEC_TARGET fptype callFunction (fptype* eventAddress, fptype* paramAddress, unsigned int functionIdx, unsigned int paramIdx) {
+EXEC_TARGET fptype callFunction (fptype* eventAddress, fptype* paramAddress, unsigned int functionIdx, unsigned long paramIdx) {
   clock_t start = clock();
   fptype ret = (*(reinterpret_cast<device_function_ptr>(device_function_table[functionIdx])))(eventAddress, paramAddress, paramIndices + paramIdx);
   clock_t stop = clock();
@@ -571,12 +571,12 @@ EXEC_TARGET fptype callFunction (fptype* eventAddress, fptype* paramAddress, uns
 
 
 #else
-EXEC_TARGET fptype callFunction (fptype* eventAddress, fptype* paramAddress, unsigned int functionIdx, unsigned int paramIdx) {
+EXEC_TARGET fptype callFunction (fptype* eventAddress, fptype* paramAddress, unsigned int functionIdx, unsigned long paramIdx) {
   return (*(reinterpret_cast<device_function_ptr>(device_function_table[functionIdx])))(eventAddress, paramAddress, paramIndices + paramIdx);
 }
 #endif
 
-EXEC_TARGET fptype callFunction (fptype* eventAddress, unsigned int functionIdx, unsigned int paramIdx) {
+EXEC_TARGET fptype callFunction (fptype* eventAddress, unsigned int functionIdx, unsigned long paramIdx) {
   return callFunction(eventAddress, paramArray, functionIdx, paramIdx);
 }
 
@@ -616,7 +616,6 @@ EXEC_TARGET fptype MetricTaker::operator () (thrust::tuple<int, fptype*, int> t)
   fptype* eventAddress = thrust::get<1>(t);
   return operator()(eventIndex, eventAddress, paramArray, eventSize);
 }
- 
 // Operator for binned evaluation, no metric. 
 // Used in normalisation. 
 #define MAX_NUM_OBSERVABLES 2
@@ -633,7 +632,7 @@ EXEC_TARGET fptype MetricTaker::operator () (thrust::tuple<int, int, fptype *> t
   // To convert global bin number to (x,y,z...) coordinates: For each dimension, take the mod 
   // with the number of bins in that dimension. Then divide by the number of bins, in effect
   // collapsing so the grid has one fewer dimension. Rinse and repeat. 
-  unsigned int* indices = paramIndices + parameters;
+  unsigned long* indices = paramIndices + parameters;
   for (int i = 0; i < evtSize; ++i) {
     fptype lowerBound = thrust::get<2>(t)[3*i+0];
     fptype upperBound = thrust::get<2>(t)[3*i+1];

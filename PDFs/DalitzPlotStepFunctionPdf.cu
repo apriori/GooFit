@@ -26,7 +26,7 @@ EXEC_TARGET fptype device_getHelicityCosine(fptype s12, fptype s13, fptype mothe
   return cos;
 }
 
-EXEC_TARGET fptype device_DalitzPlotStepFunction(fptype* evt, fptype* p, unsigned int* indices)
+EXEC_TARGET fptype device_DalitzPlotStepFunction(fptype* evt, fptype* p, unsigned long* indices)
 {
   fptype motherMass = functorConstants[indices[1] + 0]; 
   fptype daug1Mass  = functorConstants[indices[1] + 1]; 
@@ -72,7 +72,7 @@ __host__ DalitzPlotStepFunctionPdf::DalitzPlotStepFunctionPdf(std::string n,
   registerObservable(_m13);
 
   fptype decayConstants[5];
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(registerConstants(5));
   decayConstants[0] = decayInfo->motherMass;
   decayConstants[1] = decayInfo->daug1Mass;

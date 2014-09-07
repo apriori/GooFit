@@ -18,8 +18,8 @@
 EXEC_TARGET int dev_powi (int base, int exp); // Implemented in SmoothHistogramPdf.
 
 #define CALLS_TO_PRINT 10 
-typedef fptype (*device_function_ptr) (fptype*, fptype*, unsigned int*);            // Pass event, parameters, index into parameters. 
-typedef fptype (*device_metric_ptr) (fptype, fptype*, unsigned int); 
+typedef fptype (*device_function_ptr) (fptype*, fptype*, unsigned long*);            // Pass event, parameters, index into parameters.
+typedef fptype (*device_metric_ptr) (fptype, fptype*, unsigned long);
 
 extern void* host_fcn_ptr;
 
@@ -39,7 +39,7 @@ public:
   __host__ virtual bool hasAnalyticIntegral () const {return false;} 
   __host__ fptype getValue (); 
   __host__ void getCompProbsAtDataPoints (std::vector<std::vector<fptype> >& values);
-  __host__ void initialise (std::vector<unsigned int> pindices, void* dev_functionPtr = host_fcn_ptr); 
+  __host__ void initialise (std::vector<unsigned long> pindices, void* dev_functionPtr = host_fcn_ptr);
   __host__ void scan (Variable* var, std::vector<fptype>& values);
   __host__ void scan (Variable* var,
                       std::vector<fptype>& xvalues,
@@ -91,8 +91,8 @@ EXEC_TARGET fptype calculateProb (fptype rawPdf, fptype* evtVal, unsigned int pa
 EXEC_TARGET fptype calculateBinAvg (fptype rawPdf, fptype* evtVal, unsigned int par);
 EXEC_TARGET fptype calculateBinWithError (fptype rawPdf, fptype* evtVal, unsigned int par);
 EXEC_TARGET fptype calculateChisq (fptype rawPdf, fptype* evtVal, unsigned int par);
-EXEC_TARGET fptype callFunction (fptype* eventAddress, fptype *paramAddress, unsigned int functionIdx, unsigned int paramIdx);
-EXEC_TARGET fptype callFunction (fptype* eventAddress, unsigned int functionIdx, unsigned int paramIdx);
+EXEC_TARGET fptype callFunction (fptype* eventAddress, fptype *paramAddress, unsigned int functionIdx, unsigned long paramIdx);
+EXEC_TARGET fptype callFunction (fptype* eventAddress, unsigned int functionIdx, unsigned long paramIdx);
 void* getMetricPointer (std::string name);
 
 

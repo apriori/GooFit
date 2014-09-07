@@ -252,7 +252,7 @@ EXEC_TARGET devcomplex<fptype> device_Faddeeva_2 (const devcomplex<fptype>& z) {
 }
 #endif 
 
-EXEC_TARGET fptype device_Voigtian (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_Voigtian (fptype* evt, fptype* p, unsigned long* indices) {
   fptype x = evt[0]; 
   fptype m = p[indices[1]];
   fptype w = p[indices[2]];
@@ -297,7 +297,7 @@ MEM_DEVICE device_function_ptr ptr_to_Voigtian = device_Voigtian;
 __host__ VoigtianPdf::VoigtianPdf (std::string n, Variable* _x, Variable* m, Variable* s, Variable* w)
 : GooPdf(_x, n)
 {
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(registerParameter(m));
   pindices.push_back(registerParameter(s));
   pindices.push_back(registerParameter(w));

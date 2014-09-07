@@ -1,6 +1,6 @@
 #include "CrystalBallPdf.hh"
 
-EXEC_TARGET fptype device_CrystalBall (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_CrystalBall (fptype* evt, fptype* p, unsigned long* indices) {
   // Left-hand tail if alpha is less than 0, 
   // right-hand tail if greater, pure Gaussian if 0. 
   //return 1; 
@@ -36,7 +36,7 @@ MEM_DEVICE device_function_ptr ptr_to_CrystalBall = device_CrystalBall;
 __host__ CrystalBallPdf::CrystalBallPdf (std::string n, Variable* _x, Variable* mean, Variable* sigma, Variable* alpha, Variable* power) 
   : GooPdf(_x, n) 
 {
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(registerParameter(mean)); 
   pindices.push_back(registerParameter(sigma));
   pindices.push_back(registerParameter(alpha));
@@ -54,7 +54,7 @@ __host__ fptype CrystalBallPdf::integrate (fptype lo, fptype hi) const {
   fptype result = 0.0;
   bool useLog = false;
 
-  unsigned int* indices = host_indices + parameters;
+  unsigned long* indices = host_indices + parameters;
 
   fptype mean  = host_params[indices[1]];
   fptype sigma = host_params[indices[2]];

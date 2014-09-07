@@ -1,6 +1,6 @@
 #include "ArgusPdf.hh"
 
-EXEC_TARGET fptype device_Argus_Upper (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_Argus_Upper (fptype* evt, fptype* p, unsigned long* indices) {
   fptype x = evt[indices[2 + indices[0]]]; 
   fptype m0 = p[indices[1]];
 
@@ -14,7 +14,7 @@ EXEC_TARGET fptype device_Argus_Upper (fptype* evt, fptype* p, unsigned int* ind
   return x * POW(t, power) * EXP(slope * t);
 }
 
-EXEC_TARGET fptype device_Argus_Lower (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_Argus_Lower (fptype* evt, fptype* p, unsigned long* indices) {
   fptype x = evt[indices[2 + indices[0]]]; 
   fptype m0 = p[indices[1]];
 
@@ -51,7 +51,7 @@ __host__ ArgusPdf::ArgusPdf (std::string n, Variable* _x, Variable* m0, Variable
   if (!power) power = new Variable(n + "powervar", 0.5); 
   registerParameter(power); 
 
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(m0->getIndex());
   pindices.push_back(slope->getIndex());
   pindices.push_back(power->getIndex());
@@ -73,7 +73,7 @@ fptype argus_lower_helper (fptype x, fptype m0, fptype slope, fptype power) {
 
 __host__ fptype ArgusPdf::integrate (fptype lo, fptype hi) const {
   fptype norm = 0;
-  unsigned int* indices = host_indices+parameters;
+  unsigned long* indices = host_indices+parameters;
   fptype m0    = host_params[indices[1]];
   fptype slope = host_params[indices[2]];
   fptype power = host_params[indices[3]]; 

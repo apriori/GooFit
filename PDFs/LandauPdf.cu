@@ -24,7 +24,7 @@ MEM_CONSTANT fptype q6[5] = {1.0         , 651.4101098,  56974.73333,    165917.
 MEM_CONSTANT fptype a1[3] = {0.04166666667,-0.01996527778, 0.02709538966};
 MEM_CONSTANT fptype a2[2] = {-1.845568670,-4.284640743};
 
-EXEC_TARGET fptype device_Landau (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_Landau (fptype* evt, fptype* p, unsigned long* indices) {
   fptype x     = evt[indices[2 + indices[0]]]; 
   fptype mpv   = p[indices[1]];
   fptype sigma = p[indices[2]];
@@ -80,7 +80,7 @@ MEM_DEVICE device_function_ptr ptr_to_Landau = device_Landau;
 __host__ LandauPdf::LandauPdf (std::string n, Variable* _x, Variable* mpv, Variable* sigma) 
   : GooPdf(_x, n) 
 {
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(registerParameter(mpv));
   pindices.push_back(registerParameter(sigma));
   GET_FUNCTION_ADDR(ptr_to_Landau);

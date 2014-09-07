@@ -100,7 +100,7 @@ __device__ fptype spinFactor (unsigned int spin, fptype motherMass, fptype daug1
   return sFactor; 
 }
 
-__device__ devcomplex<fptype> plainBW (fptype m12, fptype m13, fptype m23, unsigned int* indices) {
+__device__ devcomplex<fptype> plainBW (fptype m12, fptype m13, fptype m23, unsigned long* indices) {
   fptype motherMass             = functorConstants[indices[1]+0];
   fptype daug1Mass              = functorConstants[indices[1]+1];
   fptype daug2Mass              = functorConstants[indices[1]+2];
@@ -176,7 +176,7 @@ __device__ devcomplex<fptype> plainBW (fptype m12, fptype m13, fptype m23, unsig
 //
 // with some dimensional constants multiplying the second term
 // the use of the letter F is inheritied, B for background and N for nonresonant might both make sense...
-__device__ devcomplex<fptype> lass(fptype m12, fptype m13, fptype m23, unsigned int* indices) {
+__device__ devcomplex<fptype> lass(fptype m12, fptype m13, fptype m23, unsigned long* indices) {
   // use the BW implementation for the resonant part...
   devcomplex<fptype> BW_part(plainBW(m12, m13, m23, indices));
   
@@ -219,7 +219,7 @@ __device__ devcomplex<fptype> lass(fptype m12, fptype m13, fptype m23, unsigned 
   return BW_part + nonres_part;
 }
 
-__device__ devcomplex<fptype> polylass(fptype m12, fptype m13, fptype m23, unsigned int *indices)
+__device__ devcomplex<fptype> polylass(fptype m12, fptype m13, fptype m23, unsigned long *indices)
 {
   // need these to calculate the K,pi momentum in the Kpi frame
   fptype motherMass             = functorConstants[indices[1]+0];
@@ -414,7 +414,7 @@ __device__ devcomplex<fptype> flatte_rhohelper(fptype m, fptype rMassSq)
 //
 // In the literature I've looked at, the first two flags aren't both neccessary, because we square the
 // g_i in the a(0)(980) case but not the f(0)(980) case, but I don't understand why this must be the case
-__device__ devcomplex<fptype> flatte(fptype m12, fptype m13, fptype m23, unsigned int* indices)
+__device__ devcomplex<fptype> flatte(fptype m12, fptype m13, fptype m23, unsigned long* indices)
 {
   fptype resmass                = paramArray[indices[2]];
   unsigned int cyclic_index     = indices[3];
@@ -483,7 +483,7 @@ __device__ devcomplex<fptype> flatte(fptype m12, fptype m13, fptype m23, unsigne
   return ret;
 }
 
-__device__ devcomplex<fptype> gaussian (fptype m12, fptype m13, fptype m23, unsigned int* indices) {
+__device__ devcomplex<fptype> gaussian (fptype m12, fptype m13, fptype m23, unsigned long* indices) {
   // indices[1] is unused constant index, for consistency with other function types. 
   fptype resmass                = paramArray[indices[2]];
   fptype reswidth               = paramArray[indices[3]];
@@ -551,7 +551,7 @@ __device__ fptype fsFun (double s, double m2, double gam, double daug2Mass, doub
   return f;
 }
 
-__device__ devcomplex<fptype> gouSak (fptype m12, fptype m13, fptype m23, unsigned int* indices) {
+__device__ devcomplex<fptype> gouSak (fptype m12, fptype m13, fptype m23, unsigned long* indices) {
   fptype motherMass             = functorConstants[indices[1]+0];
   fptype daug1Mass              = functorConstants[indices[1]+1];
   fptype daug2Mass              = functorConstants[indices[1]+2];
@@ -604,7 +604,7 @@ __device__ devcomplex<fptype> gouSak (fptype m12, fptype m13, fptype m23, unsign
   return retur; 
 }
 
-__device__ devcomplex<fptype> nonres (fptype m12, fptype m13, fptype m23, unsigned int* indices) {
+__device__ devcomplex<fptype> nonres (fptype m12, fptype m13, fptype m23, unsigned long* indices) {
   return devcomplex<fptype>(1, 0); 
 }
 
@@ -638,7 +638,7 @@ ResonancePdf::ResonancePdf (string name,
   , amp_real(ar)
   , amp_imag(ai)
 {
-  vector<unsigned int> pindices; 
+  vector<unsigned long> pindices;
   pindices.push_back(0); 
   // Making room for index of decay-related constants. Assumption:
   // These are mother mass and three daughter masses in that order.
@@ -668,7 +668,7 @@ ResonancePdf::ResonancePdf (string name,
 , amp_real(ar)
 , amp_imag(ai)
 {
-  vector<unsigned int> pindices;
+  vector<unsigned long> pindices;
   pindices.push_back(0);
   // Making room for index of decay-related constants. Assumption:
   // These are mother mass and three daughter masses in that order.
@@ -703,7 +703,7 @@ ResonancePdf::ResonancePdf (string name,
 , amp_real(ar)
 , amp_imag(ai)
 {
-  vector<unsigned int> pindices;
+  vector<unsigned long> pindices;
   pindices.push_back(0);
   // Making room for index of decay-related constants. Assumption:
   // These are mother mass and three daughter masses in that order.
@@ -743,7 +743,7 @@ ResonancePdf::ResonancePdf(std::string name,
 , amp_real(ar)
 , amp_imag(ai)
 {
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(0); // copying the rest of the constructors...
   pindices.push_back(registerParameter(mass));
   pindices.push_back(registerParameter(width));
@@ -775,7 +775,7 @@ ResonancePdf::ResonancePdf (string name,
 , amp_imag(ai)
 {
   // Same as BW except for function pointed to. 
-  vector<unsigned int> pindices; 
+  vector<unsigned long> pindices;
   pindices.push_back(0); 
   pindices.push_back(registerParameter(mass));
   pindices.push_back(registerParameter(width)); 
@@ -793,7 +793,7 @@ ResonancePdf::ResonancePdf (string name,
     , amp_real(ar)
     , amp_imag(ai)
 {
-  vector<unsigned int> pindices; 
+  vector<unsigned long> pindices;
   pindices.push_back(0); 
   // Dummy index for constants - won't use it, but calling 
   // functions can't know that and will call setConstantIndex anyway. 
@@ -811,7 +811,7 @@ ResonancePdf::ResonancePdf (string name,
     , amp_real(ar)
     , amp_imag(ai)
 {
-  vector<unsigned int> pindices; 
+  vector<unsigned long> pindices;
   pindices.push_back(0); 
   // Dummy index for constants - won't use it, but calling 
   // functions can't know that and will call setConstantIndex anyway. 

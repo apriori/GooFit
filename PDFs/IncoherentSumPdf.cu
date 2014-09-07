@@ -12,7 +12,7 @@ EXEC_TARGET inline int parIndexFromResIndex_incoherent (int resIndex) {
   return resonanceOffset_incoherent + resIndex*resonanceSize; 
 }
 
-EXEC_TARGET fptype device_incoherent (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_incoherent (fptype* evt, fptype* p, unsigned long* indices) {
   // Calculates the incoherent sum over the resonances. 
   int evtNum = (int) FLOOR(0.5 + evt[indices[4 + indices[0]]]); 
 
@@ -57,7 +57,7 @@ __host__ IncoherentSumPdf::IncoherentSumPdf (std::string n, Variable* m12, Varia
   registerObservable(_m13);
   registerObservable(eventNumber); 
 
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(registerConstants(5)); 
   fptype decayConstants[5];
   decayConstants[0] = decayInfo->motherMass;
@@ -244,7 +244,7 @@ EXEC_TARGET fptype SpecialIncoherentIntegrator::operator () (thrust::tuple<int, 
   binCenterM13        *= (globalBinNumber + 0.5); 
   binCenterM13        += lowerBoundM13; 
 
-  unsigned int* indices = paramIndices + parameters;   
+  unsigned long* indices = paramIndices + parameters;   
   fptype motherMass = functorConstants[indices[1] + 0]; 
   fptype daug1Mass  = functorConstants[indices[1] + 1]; 
   fptype daug2Mass  = functorConstants[indices[1] + 2]; 
@@ -254,7 +254,7 @@ EXEC_TARGET fptype SpecialIncoherentIntegrator::operator () (thrust::tuple<int, 
 
   int parameter_i = parIndexFromResIndex_incoherent(resonance_i); // Find position of this resonance relative to TDDP start 
   unsigned int functn_i = indices[parameter_i+2];
-  unsigned int params_i = indices[parameter_i+3];
+  unsigned long params_i = indices[parameter_i+3];
   fptype m23 = motherMass*motherMass + daug1Mass*daug1Mass + daug2Mass*daug2Mass + daug3Mass*daug3Mass - binCenterM12 - binCenterM13; 
   devcomplex<fptype> ret = getResonanceAmplitude(binCenterM12, binCenterM13, m23, functn_i, params_i);
 
@@ -280,7 +280,7 @@ EXEC_TARGET devcomplex<fptype> SpecialIncoherentResonanceCalculator::operator ()
   int evtNum = thrust::get<0>(t); 
   fptype* evt = thrust::get<1>(t) + (evtNum * thrust::get<2>(t)); 
 
-  unsigned int* indices = paramIndices + parameters;   // Jump to TDDP position within parameters array
+  unsigned long* indices = paramIndices + parameters;   // Jump to TDDP position within parameters array
   fptype m12 = evt[indices[2 + indices[0]]]; 
   fptype m13 = evt[indices[3 + indices[0]]];
   fptype motherMass = functorConstants[indices[1] + 0]; 
@@ -292,7 +292,7 @@ EXEC_TARGET devcomplex<fptype> SpecialIncoherentResonanceCalculator::operator ()
 
   int parameter_i = parIndexFromResIndex_incoherent(resonance_i); // Find position of this resonance relative to TDDP start 
   unsigned int functn_i = indices[parameter_i+2];
-  unsigned int params_i = indices[parameter_i+3];
+  unsigned long params_i = indices[parameter_i+3];
   devcomplex<fptype> ret = getResonanceAmplitude(m12, m13, m23, functn_i, params_i);
 
   return ret; 

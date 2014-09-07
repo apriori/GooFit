@@ -1,6 +1,6 @@
 #include "CorrGaussianPdf.hh"
 
-EXEC_TARGET fptype device_CorrGaussian (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_CorrGaussian (fptype* evt, fptype* p, unsigned long* indices) {
   fptype x = evt[indices[2 + indices[0]]]; 
   fptype y = evt[indices[3 + indices[0]]]; 
   fptype mean1  = p[indices[1]];
@@ -29,7 +29,7 @@ __host__ CorrGaussianPdf::CorrGaussianPdf (std::string n, Variable* _x, Variable
   //registerObservable(_x);
   registerObservable(_y);
 
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(registerParameter(mean1));
   pindices.push_back(registerParameter(sigma1));
   pindices.push_back(registerParameter(mean2));

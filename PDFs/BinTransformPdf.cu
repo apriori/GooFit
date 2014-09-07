@@ -1,6 +1,6 @@
 #include "BinTransformPdf.hh"
 
-EXEC_TARGET fptype device_BinTransform (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_BinTransform (fptype* evt, fptype* p, unsigned long* indices) {
   // Index structure: nP lim1 bin1 lim2 bin2 ... nO o1 o2 
   int numObservables = indices[1 + indices[0]];
   int ret = 0;
@@ -29,7 +29,7 @@ __host__ BinTransformPdf::BinTransformPdf (std::string n, vector<Variable*> obse
 
   cIndex = registerConstants(2*obses.size());
   fptype* host_constants = new fptype[2*obses.size()]; 
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   for (unsigned int i = 0; i < obses.size(); ++i) {
     registerObservable(obses[i]); 
     pindices.push_back(cIndex + 2*i); 

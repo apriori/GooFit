@@ -10,7 +10,7 @@ EXEC_TARGET int dev_powi (int base, int exp) {
   return ret; 
 }
 
-EXEC_TARGET fptype device_EvalHistogram (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_EvalHistogram (fptype* evt, fptype* p, unsigned long* indices) {
   // Structure is
   // nP smoothingIndex totalHistograms (limit1 step1 bins1) (limit2 step2 bins2) nO o1 o2
   // where limit and step are indices into functorConstants. 
@@ -50,7 +50,7 @@ struct Smoother {
   int parameters;
 
   EXEC_TARGET fptype operator () (int globalBin) {
-    unsigned int* indices = paramIndices + parameters; 
+    unsigned long* indices = paramIndices + parameters; 
     int numVars = indices[indices[0] + 1]; 
     fptype smoothing = paramArray[indices[1]];
     int histIndex = indices[2]; 
@@ -106,7 +106,7 @@ __host__ SmoothHistogramPdf::SmoothHistogramPdf (std::string n, BinnedDataSet* h
   host_constants = new fptype[numConstants]; 
   totalEvents = 0; 
 
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(registerParameter(smoothing));
   pindices.push_back(totalHistograms); 
 
@@ -162,8 +162,8 @@ __host__ void SmoothHistogramPdf::copyHistogramToDevice (thrust::host_vector<fpt
 
   totalHistograms++; 
 
-  int expectedBins = 1; 
-  for (unsigned int varIndex = 0; varIndex < observables.size(); ++varIndex) {
+  size_t expectedBins = 1;
+  for (size_t varIndex = 0; varIndex < observables.size(); ++varIndex) {
     expectedBins *= observables[varIndex]->numbins;
   }
   if (expectedBins != host_histogram.size()) {

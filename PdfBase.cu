@@ -6,7 +6,7 @@
 
 // Device-side, translation-unit constrained. 
 MEM_CONSTANT fptype paramArray[maxParams];           // Holds device-side fit parameters.
-MEM_CONSTANT unsigned int paramIndices[maxParams];  // Holds functor-specific indices into paramArray. Also overloaded to hold integer constants (ie parameters that cannot vary.)
+MEM_CONSTANT unsigned long paramIndices[maxParams];  // Holds functor-specific indices into paramArray. Also overloaded to hold integer constants (ie parameters that cannot vary.)
 MEM_CONSTANT fptype functorConstants[maxParams];    // Holds non-integer constants. Notice that first entry is number of events. 
 MEM_CONSTANT fptype normalisationFactors[maxParams]; 
 
@@ -127,7 +127,7 @@ __host__ void PdfBase::copyNormFactors () const {
   SYNCH(); // Ensure normalisation integrals are finished
 }
 
-__host__ void PdfBase::initialiseIndices (std::vector<unsigned int> pindices) {
+__host__ void PdfBase::initialiseIndices (std::vector<unsigned long> pindices) {
   // Structure of the individual index array: Number of parameters, then the indices
   // requested by the subclass (which will be interpreted by the subclass kernel), 
   // then the number of observables, then the observable indices. Notice that the
@@ -162,7 +162,7 @@ __host__ void PdfBase::initialiseIndices (std::vector<unsigned int> pindices) {
 	    << paramIndices << " "
 	    << std::endl; 
   */
-  MEMCPY_TO_SYMBOL(paramIndices, host_indices, totalParams*sizeof(unsigned int), 0, cudaMemcpyHostToDevice);
+  MEMCPY_TO_SYMBOL(paramIndices, host_indices, totalParams*sizeof(unsigned long), 0, cudaMemcpyHostToDevice);
   initializeSetVarProduct();
 }
 
@@ -214,7 +214,7 @@ __host__ void PdfBase::setIndices () {
     (*v)->index = counter++; 
   }
   recursiveSetIndices(); 
-  MEMCPY_TO_SYMBOL(paramIndices, host_indices, totalParams*sizeof(unsigned int), 0, cudaMemcpyHostToDevice); 
+  MEMCPY_TO_SYMBOL(paramIndices, host_indices, totalParams*sizeof(unsigned long), 0, cudaMemcpyHostToDevice);
 
   //std::cout << "host_indices after " << getName() << " observable setIndices : ";
   //for (int i = 0; i < totalParams; ++i) {

@@ -1,6 +1,6 @@
 #include "ExpPdf.hh"
 
-EXEC_TARGET fptype device_Exp (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_Exp (fptype* evt, fptype* p, unsigned long* indices) {
   fptype x = evt[indices[2 + indices[0]]]; 
   fptype alpha = p[indices[1]];
 
@@ -8,7 +8,7 @@ EXEC_TARGET fptype device_Exp (fptype* evt, fptype* p, unsigned int* indices) {
   return ret; 
 }
 
-EXEC_TARGET fptype device_ExpOffset (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_ExpOffset (fptype* evt, fptype* p, unsigned long* indices) {
   fptype x = evt[indices[2 + indices[0]]]; 
   x -= p[indices[1]]; 
   fptype alpha = p[indices[2]];
@@ -17,25 +17,25 @@ EXEC_TARGET fptype device_ExpOffset (fptype* evt, fptype* p, unsigned int* indic
   return ret; 
 }
 
-EXEC_TARGET fptype device_ExpPoly (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_ExpPoly (fptype* evt, fptype* p, unsigned long* indices) {
   fptype x = evt[indices[2 + indices[0]]]; 
   
   fptype exparg = 0; 
-  for (int i = 0; i <= indices[0]; ++i) {
-    exparg += POW(x, i) * p[indices[i+1]]; 
+  for (unsigned long i = 0; i <= indices[0]; ++i) {
+    exparg += POW(x, (fptype)i) * p[indices[i+1]];
   }
   
   fptype ret = EXP(exparg); 
   return ret; 
 }
 
-EXEC_TARGET fptype device_ExpPolyOffset (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_ExpPolyOffset (fptype* evt, fptype* p, unsigned long* indices) {
   fptype x = evt[indices[2 + indices[0]]]; 
   x -= p[indices[1]]; 
   
   fptype exparg = 0; 
-  for (int i = 0; i <= indices[0]; ++i) {
-    exparg += POW(x, i) * p[indices[i+2]]; 
+  for (unsigned long i = 0; i <= indices[0]; ++i) {
+    exparg += POW(x, (fptype)i) * p[indices[i+2]];
   }
   
   fptype ret = EXP(exparg); 
@@ -50,7 +50,7 @@ MEM_DEVICE device_function_ptr ptr_to_ExpPolyOffset = device_ExpPolyOffset;
 __host__ ExpPdf::ExpPdf (std::string n, Variable* _x, Variable* alpha, Variable* offset) 
   : GooPdf(_x, n) 
 {
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   if (offset) {
     pindices.push_back(registerParameter(offset));
     pindices.push_back(registerParameter(alpha));
@@ -68,7 +68,7 @@ __host__ ExpPdf::ExpPdf (std::string n, Variable* _x, Variable* alpha, Variable*
 __host__ ExpPdf::ExpPdf (std::string n, Variable* _x, std::vector<Variable*>& weights, Variable* offset) 
   : GooPdf(_x, n) 
 {
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   if (offset) pindices.push_back(registerParameter(offset)); 
   assert(0 < weights.size()); 
   for (std::vector<Variable*>::iterator w = weights.begin(); w != weights.end(); ++w) {

@@ -3,7 +3,7 @@
 
 #include "GooPdf.hh" 
 #include "devcomplex.hh" 
-typedef devcomplex<fptype> (*resonance_function_ptr) (fptype, fptype, fptype, unsigned int*); 
+typedef devcomplex<fptype> (*resonance_function_ptr) (fptype, fptype, fptype, unsigned long*);
 
 class ResonancePdf : public GooPdf {
   friend class TddpPdf;

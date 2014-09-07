@@ -2,7 +2,7 @@
 
 #include <cstdio>
 
-EXEC_TARGET fptype device_Polynomial (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_Polynomial (fptype* evt, fptype* p, unsigned long* indices) {
   // Structure is nP lowestdegree c1 c2 c3 nO o1
 
   int numParams = indices[0]+1; 
@@ -17,7 +17,7 @@ EXEC_TARGET fptype device_Polynomial (fptype* evt, fptype* p, unsigned int* indi
   return ret; 
 }
 
-EXEC_TARGET fptype device_OffsetPolynomial (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_OffsetPolynomial (fptype* evt, fptype* p, unsigned long* indices) {
   int numParams = indices[0]; 
   int lowestDegree = indices[1]; 
 
@@ -31,7 +31,7 @@ EXEC_TARGET fptype device_OffsetPolynomial (fptype* evt, fptype* p, unsigned int
   return ret; 
 }
 
-EXEC_TARGET fptype device_MultiPolynomial (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_MultiPolynomial (fptype* evt, fptype* p, unsigned long* indices) {
   // Structure is nP, maxDegree, offset1, offset2, ..., coeff1, coeff2, ..., nO, o1, o2, ... 
 
   int numObservables = indices[indices[0] + 1]; 
@@ -100,7 +100,7 @@ __host__ PolynomialPdf::PolynomialPdf (string n, Variable* _x, vector<Variable*>
   , center(x0)
 {
 
-  vector<unsigned int> pindices;
+  vector<unsigned long> pindices;
   pindices.push_back(lowestDegree);
   for (vector<Variable*>::iterator v = weights.begin(); v != weights.end(); ++v) {
     pindices.push_back(registerParameter(*v));
@@ -150,7 +150,7 @@ __host__ PolynomialPdf::PolynomialPdf (string n, vector<Variable*> obses, vector
     offsets.push_back(newOffset); 
   }
 
-  vector<unsigned int> pindices;
+  vector<unsigned long> pindices;
   pindices.push_back(maxDegree);
   for (vector<Variable*>::iterator o = offsets.begin(); o != offsets.end(); ++o) {
     pindices.push_back(registerParameter(*o)); 
@@ -165,7 +165,7 @@ __host__ PolynomialPdf::PolynomialPdf (string n, vector<Variable*> obses, vector
 
 __host__ fptype PolynomialPdf::integrate (fptype lo, fptype hi) const {
   // This is *still* wrong. (13 Feb 2013.) 
-  unsigned int* indices = host_indices+parameters; 
+  unsigned long* indices = host_indices+parameters; 
   fptype lowestDegree = indices[1]; 
 
   if (center) {
@@ -192,7 +192,7 @@ __host__ fptype PolynomialPdf::getCoefficient (int coef) const {
     return 0; 
   }
 
-  unsigned int* indices = host_indices + parameters;
+  unsigned long* indices = host_indices + parameters;
 
   // True function is, say, ax^2 + bx + c.
   // We express this as (a'x^2 + b'x + c')*N.

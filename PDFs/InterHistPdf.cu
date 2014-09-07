@@ -10,7 +10,7 @@ MEM_CONSTANT fptype* dev_base_interhists[100]; // Multiple histograms for the ca
 
 // dev_powi is implemented in SmoothHistogramPdf.cu. 
 
-EXEC_TARGET fptype device_InterHistogram (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_InterHistogram (fptype* evt, fptype* p, unsigned long* indices) {
   // Structure is
   // nP totalHistograms (idx1 limit1 step1 bins1) (idx2 limit2 step2 bins2) nO o1 o2
   // where limit and step are indices into functorConstants. 
@@ -106,7 +106,7 @@ EXEC_TARGET fptype device_InterHistogram (fptype* evt, fptype* p, unsigned int* 
   }
 
   if (0 == THREADIDX + BLOCKIDX)
-    printf("%f %f %f %i %f\n", ret, totalWeight, evt[0], indices[6], p[indices[6]]);
+    printf("%f %f %f %lu %f\n", ret, totalWeight, evt[0], indices[6], p[indices[6]]);
 
   ret /= totalWeight;
   return ret; 
@@ -127,7 +127,7 @@ __host__ InterHistPdf::InterHistPdf (std::string n,
   host_constants = new fptype[numConstants]; 
   totalEvents = 0; 
 
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(totalHistograms); 
 
   int varIndex = 0; 

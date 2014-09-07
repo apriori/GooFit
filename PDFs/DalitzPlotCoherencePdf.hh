@@ -40,7 +40,7 @@ private:
   GooPdf *eff;
   Variable *_m12, *_m13;
   fptype* dalitzNormRange; 
-  unsigned int cacheToUse, nResA, nResB;
+  size_t cacheToUse, nResA, nResB;
 
   // Following variables are useful if masses and widths, involved in difficult BW calculation, 
   // change infrequently while amplitudes, only used in adding BW results together, change rapidly.
@@ -58,7 +58,7 @@ class SpecialResonanceCoherenceIntegrator : public SpecialResonanceIntegrator
 public:
   // Class used to calculate integrals of terms BW_i * BW_j^*. 
   SpecialResonanceCoherenceIntegrator (int pIdx, unsigned int ri, unsigned int rj);
-  EXEC_TARGET virtual devcomplex<fptype> devicefunction(fptype m12, fptype m13, int res_i, int res_j, fptype* p, unsigned int* indices) const;
+  EXEC_TARGET virtual devcomplex<fptype> devicefunction(fptype m12, fptype m13, int res_i, int res_j, fptype* p, unsigned long* indices) const;
   EXEC_TARGET virtual const char* whoami() const;
 }; 
 

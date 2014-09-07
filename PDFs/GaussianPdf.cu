@@ -1,6 +1,6 @@
 #include "GaussianPdf.hh"
 
-EXEC_TARGET fptype device_Gaussian (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_Gaussian (fptype* evt, fptype* p, unsigned long* indices) {
   fptype x = evt[indices[2 + indices[0]]]; 
   fptype mean = p[indices[1]];
   fptype sigma = p[indices[2]];
@@ -21,7 +21,7 @@ MEM_DEVICE device_function_ptr ptr_to_Gaussian = device_Gaussian;
 __host__ GaussianPdf::GaussianPdf (std::string n, Variable* _x, Variable* mean, Variable* sigma) 
   : GooPdf(_x, n) 
 {
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(registerParameter(mean));
   pindices.push_back(registerParameter(sigma));
   GET_FUNCTION_ADDR(ptr_to_Gaussian);
@@ -33,7 +33,7 @@ __host__ fptype GaussianPdf::integrate (fptype lo, fptype hi) const {
   static const fptype rootPi = sqrt(atan2(0.0,-1.0));
   //static const fptype rootPiBy2 = rootPi / root2;
   
-  unsigned int* indices = host_indices+parameters; 
+  unsigned long* indices = host_indices+parameters; 
   //fptype xscale = root2*host_params[indices[2]];
 
   /*

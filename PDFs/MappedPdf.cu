@@ -1,6 +1,6 @@
 #include "MappedPdf.hh"
 
-EXEC_TARGET fptype device_Mapped (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_Mapped (fptype* evt, fptype* p, unsigned long* indices) {
   // Structure : nP mapFunctionIndex mapParamIndex functionIndex1 parameterIndex1 functionIndex2 parameterIndex2 ... 
 
   // Find mapping between event variables and function to evaluate
@@ -27,7 +27,7 @@ __host__ MappedPdf::MappedPdf (std::string n, GooPdf* m, vector<GooPdf*>& t)
   : GooPdf(0, n) 
 {
   components.push_back(m); 
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(m->getFunctionIndex()); 
   pindices.push_back(m->getParameterIndex()); 
 

@@ -2,7 +2,7 @@
 
 const fptype SQRT2PI = 2.506628; 
 
-EXEC_TARGET fptype device_JohnsonSU (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_JohnsonSU (fptype* evt, fptype* p, unsigned long* indices) {
   fptype _Jm = p[indices[1]];
   fptype _Js = p[indices[2]];
   fptype _Jg = p[indices[3]];
@@ -26,7 +26,7 @@ MEM_DEVICE device_function_ptr ptr_to_JohnsonSU = device_JohnsonSU;
 __host__ JohnsonSUPdf::JohnsonSUPdf (std::string n, Variable* _x, Variable* mean, Variable* sigma, Variable* gamma, Variable* delta) 
   : GooPdf(_x, n) 
 {
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(registerParameter(mean));
   pindices.push_back(registerParameter(sigma));
   pindices.push_back(registerParameter(gamma));

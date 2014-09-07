@@ -9,7 +9,7 @@ EXEC_TARGET unsigned int get1Dindex(unsigned int i, unsigned int j, unsigned int
   return i*nResB + j;
 }
 
-EXEC_TARGET devcomplex<fptype> device_DalitzCoherence_calcIntegrals (fptype m12, fptype m13, int res_i, int res_j, fptype* p, unsigned int* indices) {
+EXEC_TARGET devcomplex<fptype> device_DalitzCoherence_calcIntegrals (fptype m12, fptype m13, int res_i, int res_j, fptype* p, unsigned long* indices) {
   // Calculates BW_i(m12, m13) * BW_j^*(m12, m13). 
   // This calculation is in a separate function so
   // it can be cached. Note that this function expects
@@ -17,7 +17,7 @@ EXEC_TARGET devcomplex<fptype> device_DalitzCoherence_calcIntegrals (fptype m12,
   // observed points, that's why it doesn't use 
   // cResonances. No need to cache the values at individual
   // grid points - we only care about totals. 
-  unsigned int
+  unsigned long
     pdfa_index(indices[1]),
     // 2 is the 'number of resonances' which is always zero so we can reuse DalitzPlotPdf code
     pdfb_index(indices[3]),
@@ -55,13 +55,13 @@ EXEC_TARGET devcomplex<fptype> device_DalitzCoherence_calcIntegrals (fptype m12,
 
   int parameter_i = parIndexFromResIndex_DP(res_i);
   unsigned int functn_i = pdfa_indices[parameter_i+2];
-  unsigned int params_i = pdfa_indices[parameter_i+3];
+  unsigned long params_i = pdfa_indices[parameter_i+3];
   ret = getResonanceAmplitude(m12, m13, m23, functn_i, params_i);
 
   // And now from the other DalitzPlotPdf
   int parameter_j = parIndexFromResIndex_DP(res_j);
   unsigned int functn_j = pdfb_indices[parameter_j+2];
-  unsigned int params_j = pdfb_indices[parameter_j+3];
+  unsigned long params_j = pdfb_indices[parameter_j+3];
   ret *= getResonanceAmplitude(m12, m13, m23, functn_j, params_j);
 
   //printf("motherMass_a = %f, motherMass_b = %f, m12 = %f, m13 = %f, ret = %f + %fi\n", motherMass_a, motherMass_b, m12, m13, ret.real, ret.imag);
@@ -69,13 +69,13 @@ EXEC_TARGET devcomplex<fptype> device_DalitzCoherence_calcIntegrals (fptype m12,
   return ret; 
 }
 
-EXEC_TARGET fptype device_DalitzPlotCoherence (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_DalitzPlotCoherence (fptype* evt, fptype* p, unsigned long* indices) {
   // This is the actual PDF function. It needs to return a Gaussian PDF constraining the 
   // measured coherence values to the calculated values
   
   // These should be what pdfa and pdfb get as 'indices'
   //
-  unsigned int
+  unsigned long
     &pdfa_index(indices[1]),
     &pdfb_index(indices[3]),
     *pdfa_indices(paramIndices + pdfa_index),
@@ -131,7 +131,7 @@ EXEC_TARGET fptype device_DalitzPlotCoherence (fptype* evt, fptype* p, unsigned 
   bool stilllooking(true);
   for(unsigned int nflag = 0; nflag < numflagpairs && stilllooking; ++nflag)
   {
-    unsigned int
+    unsigned long
       &pair_evtnum(indices[10 + nflag*2 + 0]),
       &pair_flagval(indices[10+ nflag*2 + 1]);
     if(evtnum == pair_evtnum)
@@ -151,7 +151,7 @@ EXEC_TARGET fptype device_DalitzPlotCoherence (fptype* evt, fptype* p, unsigned 
       }
       else
       {
-        printf("DalitzPlotCoherencePdf: don't know how to interpret flag %d for event %d (from %f)\n", pair_flagval, pair_evtnum, evt[indices[indices[0] + 2 + 2]]);
+        printf("DalitzPlotCoherencePdf: don't know how to interpret flag %lu for event %lu (from %f)\n", pair_flagval, pair_evtnum, evt[indices[indices[0] + 2 + 2]]);
       }
       stilllooking = false;
     }
@@ -159,7 +159,7 @@ EXEC_TARGET fptype device_DalitzPlotCoherence (fptype* evt, fptype* p, unsigned 
 
   if(stilllooking)
   {
-    printf("DalitzPlotCoherencePdf: couldn't figure out what we're supposed to be doing for event %d (from %f)\n", evtnum, evt[indices[indices[0] + 2 + 2]]);
+    printf("DalitzPlotCoherencePdf: couldn't figure out what we're supposed to be doing for event %lu (from %f)\n", evtnum, evt[indices[indices[0] + 2 + 2]]);
   }
 
   //printf("DalitzPlotCoherencePdf: calculated coherence = (%f, %f). nResA = %d, nResB = %d\n", norm(coherence), coherence.arg(), nResA, nResB);
@@ -202,7 +202,7 @@ __host__ DalitzPlotCoherencePdf::DalitzPlotCoherencePdf (
   pdfab[0] = pdfa;
   pdfab[1] = pdfb;
 
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   static int cacheCount = 0;
   cacheToUse = cacheCount++;
 
@@ -234,10 +234,10 @@ __host__ DalitzPlotCoherencePdf::DalitzPlotCoherencePdf (
 
   for(std::size_t i = 0; i < pdfab.size(); ++i)
   {
-    unsigned int nResAB(pdfab[i]->getDecayInfo()->resonances.size());
+    size_t nResAB(pdfab[i]->getDecayInfo()->resonances.size());
     redoIntegral[i] = new bool[nResAB];
     param_cache[i] = new fptype*[nResAB];
-    for(std::size_t j = 0; j < nResAB; ++j)
+    for(size_t j = 0; j < nResAB; ++j)
     {
       redoIntegral[i][j] = true;
       param_cache[i][j] = NULL;
@@ -248,11 +248,11 @@ __host__ DalitzPlotCoherencePdf::DalitzPlotCoherencePdf (
   host_integrals=new devcomplex<fptype>*[nResA];
   integrators  = new SpecialResonanceCoherenceIntegrator**[nResA];
 
-  for (int i = 0; i < nResB; ++i)
+  for (size_t i = 0; i < nResB; ++i)
   {
     integrators[i]    = new SpecialResonanceCoherenceIntegrator*[nResB];
     host_integrals[i] = new devcomplex<fptype>[nResB];
-    for (int j = 0; j < nResB; ++j)
+    for (size_t j = 0; j < nResB; ++j)
     {
       integrators[i][j] = new SpecialResonanceCoherenceIntegrator(parameters, i, j); 
       host_integrals[i][j].real = host_integrals[i][j].imag = 0.0;
@@ -317,9 +317,9 @@ __host__ fptype DalitzPlotCoherencePdf::normalise () const
       * ((_m13->upperlimit - _m13->lowerlimit) / _m13->numbins));
   //std::cout << "binSizeFactor = " << binSizeFactor << std::endl;
 
-  for(int i = 0; i < nResA; ++i)
+  for(size_t i = 0; i < nResA; ++i)
   {
-    for (int j = 0; j < nResB; ++j)
+    for (size_t j = 0; j < nResB; ++j)
     {
       if((!redoIntegral[0][i]) && (!redoIntegral[1][j]))
       {
@@ -356,7 +356,7 @@ EXEC_TARGET const char* SpecialResonanceCoherenceIntegrator::whoami() const
     return "SpecialResonanceCoherenceIntegrator";
 }
 
-EXEC_TARGET devcomplex<fptype> SpecialResonanceCoherenceIntegrator::devicefunction(fptype m12, fptype m13, int res_i, int res_j, fptype* p, unsigned int* indices) const
+EXEC_TARGET devcomplex<fptype> SpecialResonanceCoherenceIntegrator::devicefunction(fptype m12, fptype m13, int res_i, int res_j, fptype* p, unsigned long* indices) const
 {
   //printf("SpecialResonanceCoherenceIntegrator::devicefunction(%f, %f, %d, %d, p, indices)\n",
   //    m12, m13, res_i, res_j);

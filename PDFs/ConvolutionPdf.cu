@@ -15,7 +15,7 @@ MEM_CONSTANT fptype* dev_resWorkSpace[100];
 // It is equal to the maximum possible value of x0, ie maxX, in bins. 
 MEM_CONSTANT int modelOffset[100]; 
 
-EXEC_TARGET fptype device_ConvolvePdfs (fptype* evt, fptype* p, unsigned int* indices) { 
+EXEC_TARGET fptype device_ConvolvePdfs (fptype* evt, fptype* p, unsigned long* indices) { 
   fptype ret     = 0; 
   fptype loBound = functorConstants[indices[5]+0];
   fptype hiBound = functorConstants[indices[5]+1];
@@ -42,7 +42,7 @@ EXEC_TARGET fptype device_ConvolvePdfs (fptype* evt, fptype* p, unsigned int* in
   return ret; 
 }
 
-EXEC_TARGET fptype device_ConvolveSharedPdfs (fptype* evt, fptype* p, unsigned int* indices) { 
+EXEC_TARGET fptype device_ConvolveSharedPdfs (fptype* evt, fptype* p, unsigned long* indices) { 
   fptype ret     = 0; 
   fptype loBound = functorConstants[indices[5]+0];
   fptype hiBound = functorConstants[indices[5]+1];
@@ -127,7 +127,7 @@ ConvolutionPdf::ConvolutionPdf (std::string n,
   components.push_back(resolution);
 
   // Indices stores (function index)(parameter index) doublet for model and resolution function. 
-  std::vector<unsigned int> paramIndices;
+  std::vector<unsigned long> paramIndices;
   paramIndices.push_back(model->getFunctionIndex());
   paramIndices.push_back(model->getParameterIndex()); 
   paramIndices.push_back(resolution->getFunctionIndex());
@@ -167,7 +167,7 @@ ConvolutionPdf::ConvolutionPdf (std::string n,
   components.push_back(resolution);
 
   // Indices stores (function index)(parameter index) doublet for model and resolution function. 
-  std::vector<unsigned int> paramIndices;
+  std::vector<unsigned long> paramIndices;
   paramIndices.push_back(model->getFunctionIndex());
   paramIndices.push_back(model->getParameterIndex()); 
   paramIndices.push_back(resolution->getFunctionIndex());

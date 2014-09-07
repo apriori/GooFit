@@ -18,11 +18,11 @@ typedef thrust::constant_iterator<int> SizeIterator;
 typedef thrust::tuple<IndexIterator, DataIterator, SizeIterator> EventTuple; 
 typedef thrust::zip_iterator<EventTuple> EventIterator; 
 
-const int maxParams = 2000; 
+const int maxParams = 1000;
 extern fptype* dev_event_array;
 extern fptype host_normalisation[maxParams];
 extern fptype host_params[maxParams];
-extern unsigned int host_indices[maxParams]; 
+extern unsigned long host_indices[maxParams];
 extern int totalParams; 
 extern int totalConstants;
 #ifdef OMP_ON
@@ -42,7 +42,7 @@ public:
 
   __host__ virtual double calculateNLL () const = 0; 
   __host__ virtual fptype normalise () const = 0;
-  __host__ void initialiseIndices (std::vector<unsigned int> pindices); 
+  __host__ void initialiseIndices (std::vector<unsigned long> pindices);
 
   typedef std::vector<Variable*> obsCont;
   typedef obsCont::iterator obsIter;
@@ -111,7 +111,7 @@ protected:
   fptype numEvents;         // Non-integer to allow weighted events
   unsigned int numEntries;  // Eg number of bins - not always the same as number of events, although it can be. 
   fptype* normRanges;       // This is specific to functor instead of variable so that MetricTaker::operator needn't use indices. 
-  unsigned int parameters;  // Stores index, in 'paramIndices', where this functor's information begins. 
+  unsigned long parameters;  // Stores index, in 'paramIndices', where this functor's information begins.
   unsigned int cIndex;      // Stores location of constants. 
   obsCont observables;
   SetObsCont setObservables;
@@ -135,7 +135,7 @@ private:
 
 // Device-side, translation-unit constrained. 
 extern MEM_CONSTANT fptype paramArray[maxParams];           // Holds device-side fit parameters.
-extern MEM_CONSTANT unsigned int paramIndices[maxParams];  // Holds functor-specific indices into paramArray. Also overloaded to hold integer constants (ie parameters that cannot vary.)
+extern MEM_CONSTANT unsigned long paramIndices[maxParams];  // Holds functor-specific indices into paramArray. Also overloaded to hold integer constants (ie parameters that cannot vary.)
 extern MEM_CONSTANT fptype functorConstants[maxParams];    // Holds non-integer constants. Notice that first entry is number of events. 
 extern MEM_CONSTANT fptype normalisationFactors[maxParams]; 
 

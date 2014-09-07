@@ -2,7 +2,7 @@
 
 #include <cstdio>
 
-__device__ fptype device_GaussianNoObs(fptype* evt, fptype* p, unsigned int* indices) {
+__device__ fptype device_GaussianNoObs(fptype* evt, fptype* p, unsigned long* indices) {
   //fptype x = evt[indices[2 + indices[0]]];
   fptype x = p[indices[1]];
   fptype mean = p[indices[2]];
@@ -17,7 +17,7 @@ __device__ device_function_ptr ptr_to_GaussianNoObs = device_GaussianNoObs;
 __host__ GaussianNoObsPdf::GaussianNoObsPdf (std::string n, Variable* _x, Variable* mean, Variable* sigma)
   : GooPdf(NULL, n)
 {
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(registerParameter(_x));
   pindices.push_back(registerParameter(mean));
   pindices.push_back(registerParameter(sigma));
@@ -33,7 +33,7 @@ __host__ fptype GaussianNoObsPdf::integrate (fptype lo, fptype hi) const
   static const fptype rootPi = sqrt(atan2(0.0,-1.0));
   //static const fptype rootPiBy2 = rootPi / root2;
   
-  unsigned int* indices = host_indices+parameters;
+  unsigned long* indices = host_indices+parameters;
   //fptype xscale = root2*host_params[indices[2]];
 
   /*

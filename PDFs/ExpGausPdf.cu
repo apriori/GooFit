@@ -1,6 +1,6 @@
 #include "ExpGausPdf.hh"
 
-EXEC_TARGET fptype device_ExpGaus (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_ExpGaus (fptype* evt, fptype* p, unsigned long* indices) {
   fptype x     = evt[indices[2 + indices[0]]]; 
   fptype mean  = p[indices[1]];
   fptype sigma = p[indices[2]];
@@ -21,7 +21,7 @@ MEM_DEVICE device_function_ptr ptr_to_ExpGaus = device_ExpGaus;
 ExpGausPdf::ExpGausPdf (std::string n, Variable* _x, Variable* mean, Variable* sigma, Variable* tau) 
   : GooPdf(_x, n)
 {
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(registerParameter(mean));
   pindices.push_back(registerParameter(sigma));
   pindices.push_back(registerParameter(tau));

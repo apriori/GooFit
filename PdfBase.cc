@@ -6,7 +6,7 @@
 fptype* dev_event_array;
 fptype host_normalisation[maxParams];
 fptype host_params[maxParams];
-unsigned int host_indices[maxParams]; 
+unsigned long host_indices[maxParams];
 int host_callnumber = 0; 
 int totalParams = 0; 
 int totalConstants = 1; // First constant is reserved for number of events. 
@@ -123,7 +123,7 @@ __host__ void PdfBase::getObservables (std::vector<Variable*>& ret) const {
 }
 
 __host__ void PdfBase::getSetObservables (PdfBase::SetObsCont& ret) const {
-  for (SetObsConstIter p = setObservables.cbegin(); p != setObservables.cend(); ++p) {
+  for (SetObsConstIter p = setObservables.begin(); p != setObservables.end(); ++p) {
     if (std::find(ret.begin(), ret.end(), *p) != ret.end()) continue;
     ret.push_back(*p);
   }

@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 2.8)
 project(GooFit)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/thrust)
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/bulk)
+
+
 find_package(CUDA)
 find_package(OpenMP)
 find_package(ROOT REQUIRED COMPONENTS RooFitCore RooFit Hist Minuit Minuit2 MathCore Graf Graf3d Gpad)
@@ -21,6 +25,7 @@ set(GOOFIT_VERSION
 #set(INSTALL_BIN_DIR bin CACHE PATH "Installation directory for executables")
 #set(INSTALL_INCLUDE_DIR include CACHE PATH)
 set(GOOFIT_THRUST_BACKEND "CUDA" CACHE STRING "which backend to use for thrust, either \"CUDA\" or \"OPENMP\"")
+
 
 if(NOT ${GOOFIT_THRUST_BACKEND} MATCHES "OPENMP")
     if(NOT ${GOOFIT_THRUST_BACKEND} MATCHES "CUDA")
@@ -66,7 +71,7 @@ endif(${APPLE})
  endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_STD} -pedantic -Wall -Wextra -fPIC -Wno-unused-parameter")
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};${NVCC_STDLIB})
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-I${CMAKE_CURRENT_SOURCE_DIR}/thrust -I${CMAKE_CURRENT_SOURCE_DIR}/bulk;${NVCC_STDLIB})
 set(CMAKE_EXE_LINKER_FLAGS "${CXX_STDLIB} ${CXX_STD}")
 
 

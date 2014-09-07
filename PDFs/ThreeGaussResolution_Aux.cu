@@ -51,7 +51,7 @@ EXEC_TARGET void gaussian (fptype& _P1, fptype& _P2, fptype& _P3, fptype& _P4,
 
 EXEC_TARGET fptype device_threegauss_resolution (fptype coshterm, fptype costerm, fptype sinhterm, fptype sinterm, 
 						fptype tau, fptype dtime, fptype xmixing, fptype ymixing, fptype sigma,
-						fptype* p, unsigned int* indices) { 
+						fptype* p, unsigned long* indices) { 
 
 
   fptype coreFraction    = p[indices[1]];
@@ -114,7 +114,7 @@ ThreeGaussResolution::ThreeGaussResolution (Variable* cf, Variable* tf, Variable
 }
 ThreeGaussResolution::~ThreeGaussResolution () {} 
 
-void ThreeGaussResolution::createParameters (std::vector<unsigned int>& pindices, PdfBase* dis) {
+void ThreeGaussResolution::createParameters (std::vector<unsigned long>& pindices, PdfBase* dis) {
   pindices.push_back(8); 
   pindices.push_back(dis->registerParameter(coreFraction));
   pindices.push_back(dis->registerParameter(tailFraction));

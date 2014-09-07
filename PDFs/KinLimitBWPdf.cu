@@ -14,7 +14,7 @@ EXEC_TARGET fptype bwFactor (fptype momentum) {
   return 1/SQRT(1.0 + 2.56 * momentum*momentum);
 }
 
-EXEC_TARGET fptype device_KinLimitBW (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_KinLimitBW (fptype* evt, fptype* p, unsigned long* indices) {
   fptype x = evt[indices[2 + indices[0]]]; 
   fptype mean  = p[indices[1]];
   fptype width = p[indices[2]];
@@ -63,7 +63,7 @@ __host__ KinLimitBWPdf::KinLimitBWPdf (std::string n, Variable* _x, Variable* me
   registerParameter(mean);
   registerParameter(width);
 
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(mean->getIndex());
   pindices.push_back(width->getIndex());
   pindices.push_back(registerConstants(2));

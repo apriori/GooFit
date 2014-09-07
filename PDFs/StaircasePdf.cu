@@ -1,6 +1,6 @@
 #include "StaircasePdf.hh"
 
-__device__ fptype device_Staircase (fptype* evt, fptype* p, unsigned int* indices)
+__device__ fptype device_Staircase (fptype* evt, fptype* p, unsigned long* indices)
 {
   fptype x = evt[indices[2 + indices[0]]];
   unsigned int x_int = FLOOR(0.5 + x);
@@ -25,7 +25,7 @@ device_function_ptr hptr_to_Staircase = device_Staircase;
 __host__ StaircasePdf::StaircasePdf(std::string n, Variable* _x, const std::vector<Variable*> &x0list)
   : GooPdf(_x, n) 
 {
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(x0list.size());
   for(std::vector<Variable*>::const_iterator x0 = x0list.begin(); x0 != x0list.end(); x0++)
     pindices.push_back(registerParameter(*x0));
@@ -35,7 +35,7 @@ __host__ StaircasePdf::StaircasePdf(std::string n, Variable* _x, const std::vect
 }
 
 //__host__ fptype StaircasePdf::integrate (fptype lo, fptype hi) const {
-//  unsigned int* indices = host_indices+parameters;
+//  unsigned long* indices = host_indices+parameters;
   
   // the part where the function is zero is 
   

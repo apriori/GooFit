@@ -5,7 +5,7 @@ EXEC_TARGET fptype threshCalc (fptype distance, fptype linConst) {
   return ret; 
 }
 
-EXEC_TARGET fptype device_TrigThresholdUpper (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_TrigThresholdUpper (fptype* evt, fptype* p, unsigned long* indices) {
   fptype x         = evt[indices[2 + indices[0]]]; 
   fptype thresh    = p[indices[1]];
   fptype trigConst = p[indices[2]];
@@ -15,7 +15,7 @@ EXEC_TARGET fptype device_TrigThresholdUpper (fptype* evt, fptype* p, unsigned i
   return threshCalc(trigConst, linConst);
 }
 
-EXEC_TARGET fptype device_TrigThresholdLower (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_TrigThresholdLower (fptype* evt, fptype* p, unsigned long* indices) {
   fptype x         = evt[indices[2 + indices[0]]]; 
   fptype thresh    = p[indices[1]];
   fptype trigConst = p[indices[2]];
@@ -25,7 +25,7 @@ EXEC_TARGET fptype device_TrigThresholdLower (fptype* evt, fptype* p, unsigned i
   return threshCalc(trigConst, linConst);
 }
 
-EXEC_TARGET fptype device_VerySpecialEpisodeTrigThresholdUpper (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_VerySpecialEpisodeTrigThresholdUpper (fptype* evt, fptype* p, unsigned long* indices) {
   // Annoying special case for use with Mikhail's efficiency function across the Dalitz plot 
 
   fptype x         = evt[indices[2 + indices[0] + 0]]; 
@@ -40,7 +40,7 @@ EXEC_TARGET fptype device_VerySpecialEpisodeTrigThresholdUpper (fptype* evt, fpt
   return threshCalc(trigConst, linConst);
 }
 
-EXEC_TARGET fptype device_VerySpecialEpisodeTrigThresholdLower (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_VerySpecialEpisodeTrigThresholdLower (fptype* evt, fptype* p, unsigned long* indices) {
   fptype x         = evt[indices[2 + indices[0] + 0]]; 
   fptype y         = evt[indices[2 + indices[0] + 1]]; 
 
@@ -67,7 +67,7 @@ MEM_DEVICE device_function_ptr ptr_to_VerySpecialEpisodeTrigThresholdLower = dev
 __host__ TrigThresholdPdf::TrigThresholdPdf (std::string n, Variable* _x, Variable* thresh, Variable* trigConst, Variable* linConst, bool upper) 
   : GooPdf(_x, n) 
 {
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(registerParameter(thresh));
   pindices.push_back(registerParameter(trigConst));
   pindices.push_back(registerParameter(linConst)); 
@@ -83,7 +83,7 @@ __host__ TrigThresholdPdf::TrigThresholdPdf (std::string n, Variable* _x, Variab
   registerObservable(_x);
   registerObservable(_y);
 
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(registerParameter(thresh));
   pindices.push_back(registerParameter(trigConst));
   pindices.push_back(registerParameter(linConst)); 

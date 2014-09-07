@@ -1,15 +1,15 @@
 #include "ProdPdf.hh"
 
-EXEC_TARGET fptype device_ProdPdfs (fptype* evt, fptype* p, unsigned int* indices) { 
+EXEC_TARGET fptype device_ProdPdfs (fptype* evt, fptype* p, unsigned long* indices) { 
   // Index structure is nP | F1 P1 | F2 P2 | ...
   // where nP is number of parameters, Fs are function indices, and Ps are parameter indices
 
-  int numParams = indices[0]; 
+  long numParams = indices[0];
   fptype ret = 1;
 
-  for (int i = 1; i < numParams; i += 2) {
-    int fcnIdx = indices[i + 0]; 
-    int parIdx = indices[i + 1]; 
+  for (long i = 1; i < numParams; i += 2) {
+    long fcnIdx = indices[i + 0];
+    long parIdx = indices[i + 1];
 
     //fptype curr = (*(reinterpret_cast<device_function_ptr>(device_function_table[fcnIdx])))(evt, p, paramIndices + parIdx);
     fptype curr = callFunction(evt, fcnIdx, parIdx); 
@@ -38,7 +38,7 @@ ProdPdf::ProdPdf (std::string n, std::vector<PdfBase*> comps)
   : GooPdf(0, n) 
   , varOverlaps(false) 
 {
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
 
   for (std::vector<PdfBase*>::iterator p = comps.begin(); p != comps.end(); ++p) {
     assert(*p);

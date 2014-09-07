@@ -1,6 +1,6 @@
 #include "NovosibirskPdf.hh"
 
-EXEC_TARGET fptype device_Novosibirsk (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_Novosibirsk (fptype* evt, fptype* p, unsigned long* indices) {
   fptype _Mean  = p[indices[1]];
   fptype _Sigma = p[indices[2]];
   fptype _Tail  = p[indices[3]];
@@ -36,7 +36,7 @@ MEM_DEVICE device_function_ptr ptr_to_Novosibirsk = device_Novosibirsk;
 __host__ NovosibirskPdf::NovosibirskPdf (std::string n, Variable* _x, Variable* mean, Variable* sigma, Variable* tail) 
   : GooPdf(_x, n) 
 {
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(registerParameter(mean));
   pindices.push_back(registerParameter(sigma));
   pindices.push_back(registerParameter(tail));

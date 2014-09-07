@@ -42,7 +42,7 @@ EXEC_TARGET devcomplex<fptype> getResonanceAmplitude (fptype m12, fptype m13, fp
   return (*func)(m12, m13, m23, paramIndices + pIndex); 
 }
 
-EXEC_TARGET ThreeComplex device_Tddp_calcIntegrals (fptype m12, fptype m13, int res_i, int res_j, fptype* p, unsigned int* indices) {
+EXEC_TARGET ThreeComplex device_Tddp_calcIntegrals (fptype m12, fptype m13, int res_i, int res_j, fptype* p, unsigned long* indices) {
   // For calculating Dalitz-plot integrals. What's needed is the products 
   // AiAj*, AiBj*, and BiBj*, where 
   // Ai = BW_i(x, y) + BW_i(y, x)
@@ -70,12 +70,12 @@ EXEC_TARGET ThreeComplex device_Tddp_calcIntegrals (fptype m12, fptype m13, int 
   //fptype amp_real             = p[indices[parameter_i+0]];
   //fptype amp_imag             = p[indices[parameter_i+1]];
   unsigned int functn_i = indices[parameter_i+2];
-  unsigned int params_i = indices[parameter_i+3];
+  unsigned long params_i = indices[parameter_i+3];
   devcomplex<fptype> ai = getResonanceAmplitude(m12, m13, m23, functn_i, params_i);
   devcomplex<fptype> bi = getResonanceAmplitude(m13, m12, m23, functn_i, params_i);
 
   unsigned int functn_j = indices[parameter_j+2];
-  unsigned int params_j = indices[parameter_j+3];
+  unsigned long params_j = indices[parameter_j+3];
   devcomplex<fptype> aj = conj(getResonanceAmplitude(m12, m13, m23, functn_j, params_j));
   devcomplex<fptype> bj = conj(getResonanceAmplitude(m13, m12, m23, functn_j, params_j)); 
 
@@ -83,7 +83,7 @@ EXEC_TARGET ThreeComplex device_Tddp_calcIntegrals (fptype m12, fptype m13, int 
   return ret; 
 }
 
-EXEC_TARGET fptype device_Tddp (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_Tddp (fptype* evt, fptype* p, unsigned long* indices) {
   fptype motherMass = functorConstants[indices[1] + 0]; 
   fptype daug1Mass  = functorConstants[indices[1] + 1]; 
   fptype daug2Mass  = functorConstants[indices[1] + 2]; 
@@ -301,7 +301,7 @@ __host__ TddpPdf::TddpPdf (std::string n, Variable* _dtime, Variable* _sigmat, V
     decayConstants[5] = 1; // Flags existence of mistag
   } 
 
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(registerConstants(6)); 
   decayConstants[0] = decayInfo->motherMass;
   decayConstants[1] = decayInfo->daug1Mass;
@@ -395,7 +395,7 @@ __host__ TddpPdf::TddpPdf (std::string n, Variable* _dtime, Variable* _sigmat, V
     decayConstants[5] = 1; // Flags existence of mistag
   } 
 
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(registerConstants(8)); 
   decayConstants[0] = decayInfo->motherMass;
   decayConstants[1] = decayInfo->daug1Mass;
@@ -662,7 +662,7 @@ EXEC_TARGET ThreeComplex SpecialDalitzIntegrator::operator () (thrust::tuple<int
   binCenterM13        += lowerBoundM13; 
 
   //if (0 == THREADIDX) cuPrintf("%i %i %i %f %f operator\n", thrust::get<0>(t), thrust::get<0>(t) % numBinsM12, globalBinNumber, binCenterM12, binCenterM13);
-  unsigned int* indices = paramIndices + parameters;   
+  unsigned long* indices = paramIndices + parameters;   
   ThreeComplex ret = device_Tddp_calcIntegrals(binCenterM12, binCenterM13, resonance_i, resonance_j, paramArray, indices);
 
   fptype fakeEvt[10]; // Need room for many observables in case m12 or m13 were assigned a high index in an event-weighted fit. 
@@ -708,7 +708,7 @@ EXEC_TARGET WaveHolder SpecialWaveCalculator::operator () (thrust::tuple<int, fp
   int evtNum = thrust::get<0>(t); 
   fptype* evt = thrust::get<1>(t) + (evtNum * thrust::get<2>(t)); 
 
-  unsigned int* indices = paramIndices + parameters;   // Jump to TDDP position within parameters array
+  unsigned long* indices = paramIndices + parameters;   // Jump to TDDP position within parameters array
   fptype m12 = evt[indices[4 + indices[0]]]; 
   fptype m13 = evt[indices[5 + indices[0]]];
 
@@ -722,7 +722,7 @@ EXEC_TARGET WaveHolder SpecialWaveCalculator::operator () (thrust::tuple<int, fp
 
   int parameter_i = parIndexFromResIndex(resonance_i); // Find position of this resonance relative to TDDP start 
   unsigned int functn_i = indices[parameter_i+2];
-  unsigned int params_i = indices[parameter_i+3];
+  unsigned long params_i = indices[parameter_i+3];
 
   devcomplex<fptype> ai = getResonanceAmplitude(m12, m13, m23, functn_i, params_i);
   devcomplex<fptype> bi = getResonanceAmplitude(m13, m12, m23, functn_i, params_i);

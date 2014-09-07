@@ -1,7 +1,7 @@
 #include "DalitzVetoPdf.hh"
 #include "DalitzPlotHelpers.hh" 
 
-EXEC_TARGET fptype device_DalitzVeto (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_DalitzVeto (fptype* evt, fptype* p, unsigned long* indices) {
   fptype x         = evt[indices[2 + indices[0] + 0]]; 
   fptype y         = evt[indices[2 + indices[0] + 1]]; 
 
@@ -15,7 +15,7 @@ EXEC_TARGET fptype device_DalitzVeto (fptype* evt, fptype* p, unsigned int* indi
 
   fptype ret = inDalitz(x, y, motherM, d1m, d2m, d3m) ? 1.0 : 0.0; 
   unsigned int numVetos = indices[5];
-  for (int i = 0; i < numVetos; ++i) {
+  for (unsigned long i = 0; i < numVetos; ++i) {
     unsigned int varIndex =   indices[6 + i*3 + 0];
     fptype minimum        = p[indices[6 + i*3 + 1]];
     fptype maximum        = p[indices[6 + i*3 + 2]];
@@ -35,7 +35,7 @@ __host__ DalitzVetoPdf::DalitzVetoPdf (std::string n, Variable* _x, Variable* _y
   registerObservable(_x);
   registerObservable(_y);
 
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(registerParameter(motherM));
   pindices.push_back(registerParameter(d1m));
   pindices.push_back(registerParameter(d2m));

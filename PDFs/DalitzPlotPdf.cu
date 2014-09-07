@@ -6,7 +6,7 @@
 // own cache, hence the '10'. Ten threads should be enough for anyone! 
 MEM_DEVICE devcomplex<fptype>* cResonances[10]; 
 
-EXEC_TARGET devcomplex<fptype> device_DalitzPlot_calcIntegrals (fptype m12, fptype m13, int res_i, int res_j, fptype* p, unsigned int* indices) {
+EXEC_TARGET devcomplex<fptype> device_DalitzPlot_calcIntegrals (fptype m12, fptype m13, int res_i, int res_j, fptype* p, unsigned long* indices) {
   // Calculates BW_i(m12, m13) * BW_j^*(m12, m13). 
   // This calculation is in a separate function so
   // it can be cached. Note that this function expects
@@ -25,18 +25,18 @@ EXEC_TARGET devcomplex<fptype> device_DalitzPlot_calcIntegrals (fptype m12, fpty
 
   int parameter_i = parIndexFromResIndex_DP(res_i);
   unsigned int functn_i = indices[parameter_i+2];
-  unsigned int params_i = indices[parameter_i+3];
+  unsigned long params_i = indices[parameter_i+3];
   ret = getResonanceAmplitude(m12, m13, m23, functn_i, params_i);
 
   int parameter_j = parIndexFromResIndex_DP(res_j);
   unsigned int functn_j = indices[parameter_j+2];
-  unsigned int params_j = indices[parameter_j+3];
+  unsigned long params_j = indices[parameter_j+3];
   ret *= conj(getResonanceAmplitude(m12, m13, m23, functn_j, params_j));
 
   return ret; 
 }
 
-EXEC_TARGET fptype device_DalitzPlot (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_DalitzPlot (fptype* evt, fptype* p, unsigned long* indices) {
   fptype motherMass = functorConstants[indices[1] + 0]; 
   fptype daug1Mass  = functorConstants[indices[1] + 1]; 
   fptype daug2Mass  = functorConstants[indices[1] + 2]; 
@@ -103,7 +103,7 @@ __host__ DalitzPlotPdf::DalitzPlotPdf (std::string n,
 
   fptype decayConstants[6];
   
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(registerConstants(6));
   decayConstants[0] = decayInfo->motherMass;
   decayConstants[1] = decayInfo->daug1Mass;
@@ -306,7 +306,7 @@ SpecialResonanceIntegrator::SpecialResonanceIntegrator (int pIdx, unsigned int r
   , parameters(pIdx) 
 {}
 
-EXEC_TARGET devcomplex<fptype> SpecialResonanceIntegrator::devicefunction(fptype m12, fptype m13, int res_i, int res_j, fptype* p, unsigned int* indices) const
+EXEC_TARGET devcomplex<fptype> SpecialResonanceIntegrator::devicefunction(fptype m12, fptype m13, int res_i, int res_j, fptype* p, unsigned long* indices) const
 {
   //printf("SpecialResonanceIntegrator::devicefunction()\n");
   return device_DalitzPlot_calcIntegrals(m12, m13, res_i, res_j, p, indices);
@@ -341,7 +341,7 @@ EXEC_TARGET devcomplex<fptype> SpecialResonanceIntegrator::operator () (thrust::
   binCenterM13        *= (globalBinNumber + 0.5); 
   binCenterM13        += lowerBoundM13; 
 
-  unsigned int* indices = paramIndices + parameters;   
+  unsigned long* indices = paramIndices + parameters;   
   devcomplex<fptype> ret = this->devicefunction(binCenterM12, binCenterM13, resonance_i, resonance_j, paramArray, indices);
 
   fptype fakeEvt[10]; // Need room for many observables in case m12 or m13 were assigned a high index in an event-weighted fit. 
@@ -375,7 +375,7 @@ EXEC_TARGET devcomplex<fptype> SpecialResonanceCalculator::operator () (thrust::
   int evtNum = thrust::get<0>(t); 
   fptype* evt = thrust::get<1>(t) + (evtNum * thrust::get<2>(t)); 
 
-  unsigned int* indices = paramIndices + parameters;   // Jump to DALITZPLOT position within parameters array
+  unsigned long* indices = paramIndices + parameters;   // Jump to DALITZPLOT position within parameters array
   fptype m12 = evt[indices[2 + indices[0]]]; 
   fptype m13 = evt[indices[3 + indices[0]]];
 
@@ -389,7 +389,7 @@ EXEC_TARGET devcomplex<fptype> SpecialResonanceCalculator::operator () (thrust::
   int parameter_i = parIndexFromResIndex_DP(resonance_i); // Find position of this resonance relative to DALITZPLOT start 
 
   unsigned int functn_i = indices[parameter_i+2];
-  unsigned int params_i = indices[parameter_i+3];
+  unsigned long params_i = indices[parameter_i+3];
 
   ret = getResonanceAmplitude(m12, m13, m23, functn_i, params_i);
   //printf("Amplitude %f %f %f (%f, %f)\n ", m12, m13, m23, ret.real, ret.imag); 

@@ -1,7 +1,7 @@
 #include "ScaledGaussianPdf.hh"
 //#include <limits>
 
-EXEC_TARGET fptype device_ScaledGaussian (fptype* evt, fptype* p, unsigned int* indices) {
+EXEC_TARGET fptype device_ScaledGaussian (fptype* evt, fptype* p, unsigned long* indices) {
   fptype x = evt[0]; 
   fptype mean = p[indices[1]] + p[indices[3]];
   fptype sigma = p[indices[2]] * (1 + p[indices[4]]);
@@ -26,7 +26,7 @@ __host__ ScaledGaussianPdf::ScaledGaussianPdf (std::string n, Variable* _x, Vari
   registerParameter(delta);
   registerParameter(epsilon);
 
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(mean->getIndex());
   pindices.push_back(sigma->getIndex());
   pindices.push_back(delta->getIndex());

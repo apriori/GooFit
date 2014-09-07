@@ -1,18 +1,18 @@
 #include "CompositePdf.hh"
 
-EXEC_TARGET fptype device_Composite (fptype* evt, fptype* p, unsigned int* indices) {
-  unsigned int coreFcnIndex  = indices[1];
-  unsigned int coreParIndex  = indices[2];
-  unsigned int shellFcnIndex = indices[3];
-  unsigned int shellParIndex = indices[4];
+EXEC_TARGET fptype device_Composite (fptype* evt, fptype* p, unsigned long* indices) {
+  unsigned long coreFcnIndex  = indices[1];
+  unsigned long coreParIndex  = indices[2];
+  unsigned long shellFcnIndex = indices[3];
+  unsigned long shellParIndex = indices[4];
 
   // NB, not normalising core function, it is not being used as a PDF. 
   //fptype coreValue = (*(reinterpret_cast<device_function_ptr>(device_function_table[coreFcnIndex])))(evt, paramArray, paramIndices+coreParIndex);
   fptype coreValue = callFunction(evt, coreFcnIndex, coreParIndex);
 
-  unsigned int* shellParams = paramIndices + shellParIndex; 
-  unsigned int numShellPars = shellParams[0];
-  unsigned int shellObsIndex = shellParams[2 + numShellPars];
+  unsigned long* shellParams = paramIndices + shellParIndex;
+  unsigned long numShellPars = shellParams[0];
+  unsigned long shellObsIndex = shellParams[2 + numShellPars];
 
   fptype fakeEvt[10]; // Allow plenty of space in case events are large. 
   fakeEvt[shellObsIndex] = coreValue; 
@@ -33,7 +33,7 @@ MEM_DEVICE device_function_ptr ptr_to_Composite = device_Composite;
 __host__ CompositePdf::CompositePdf (std::string n, PdfBase* core, PdfBase* shell) 
   : GooPdf(0, n) 
 {
-  std::vector<unsigned int> pindices;
+  std::vector<unsigned long> pindices;
   pindices.push_back(core->getFunctionIndex());
   pindices.push_back(core->getParameterIndex());
   pindices.push_back(shell->getFunctionIndex());
