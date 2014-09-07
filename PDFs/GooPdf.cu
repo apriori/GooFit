@@ -300,6 +300,7 @@ __host__ void GooPdf::evaluateAtPoints (Variable* var, std::vector<fptype>& res)
   }
   setData(&tempdata);  
 
+  preEvaluateComponents(true);
   std::cout << "numevents is " << tempdata.numEvents() << std::endl;
  
   thrust::counting_iterator<int> eventIndex(0); 
@@ -465,13 +466,15 @@ ptrdiff_t GooPdf::numVarsOffset() const {
 __host__ fptype GooPdf::getValue () {
   // Returns the value of the PDF at a single point. 
   // Execute redundantly in all threads for OpenMP multiGPU case
-  copyParams(); 
-  normalise(); 
-  MEMCPY_TO_SYMBOL(normalisationFactors, host_normalisation, totalParams*sizeof(fptype), 0, cudaMemcpyHostToDevice); 
+  copyParams();
+  normalise();
+  MEMCPY_TO_SYMBOL(normalisationFactors, host_normalisation, totalParams*sizeof(fptype), 0, cudaMemcpyHostToDevice);
 
-  UnbinnedDataSet point(observables); 
+  UnbinnedDataSet point(observables);
   point.addEvent(); 
-  setData(&point); 
+  setData(&point);
+
+  preEvaluateComponents();
 
   thrust::counting_iterator<int> eventIndex(0); 
   thrust::constant_iterator<int> eventSize(observables.size()); 
@@ -514,6 +517,8 @@ __host__ fptype GooPdf::normalise () const {
     //if (cpuDebug & 1) std::cout << "Total bins " << totalBins << " due to " << (*v)->name << " " << integrationBins << " " << (*v)->numbins << std::endl; 
   }
   ret /= totalBins; 
+
+  preEvaluateComponents();
 
   fptype dummy = 0; 
   static thrust::plus<fptype> cudaPlus;
@@ -662,6 +667,9 @@ __host__ void GooPdf::getCompProbsAtDataPoints (std::vector<std::vector<fptype> 
     numVars += 2;
     numVars *= -1; 
   }
+
+  preEvaluateComponents();
+
   thrust::device_vector<fptype> results(numEntries); 
   thrust::constant_iterator<int> eventSize(numVars); 
   thrust::constant_iterator<fptype*> arrayAddress(dev_event_array); 
@@ -700,6 +708,8 @@ __host__ void GooPdf::transformGrid (fptype* host_output) {
   for (obsConstIter v = obsCBegin(); v != obsCEnd(); ++v) {
     totalBins *= (*v)->numbins; 
   }
+
+  preEvaluateComponents();
 
   thrust::constant_iterator<fptype*> arrayAddress(normRanges); 
   thrust::constant_iterator<int> eventSize(observables.size());

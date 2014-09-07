@@ -15,15 +15,14 @@ public:
 
 protected:
   __host__ virtual double sumOfNll (int numVars) const;
+  __host__ virtual void preEvaluateComponents(bool force = false) const;
 
 private:
   mutable thrust::device_vector<fptype>* componentValues;
   int eventArrayAddressParamIndex;
   int componentValuesAddressParamIndex;
   int numEventsParamIndex;
-#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
-  void preEvaluateComponents() const;
-#endif
+
   std::vector<Variable*> weights;
   bool extended; 
 };

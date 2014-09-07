@@ -37,6 +37,7 @@ public:
   __host__ virtual fptype normalise () const;
   __host__ virtual fptype integrate (fptype lo, fptype hi) const {return 0;}
   __host__ virtual bool hasAnalyticIntegral () const {return false;} 
+
   __host__ fptype getValue (); 
   __host__ void getCompProbsAtDataPoints (std::vector<std::vector<fptype> >& values);
   __host__ void initialise (std::vector<unsigned long> pindices, void* dev_functionPtr = host_fcn_ptr);
@@ -50,12 +51,12 @@ public:
   __host__ virtual void setMetrics (); 
   __host__ void setParameterConstantness (bool constant = true);
   __host__ ptrdiff_t numVarsOffset() const;
-
   __host__ virtual void transformGrid (fptype* host_output); 
   static __host__ int findFunctionIdx (void* dev_functionPtr); 
   __host__ void setDebugMask (int mask, bool setSpecific = true) const; 
 
 protected:
+    __host__ virtual void preEvaluateComponents(bool force = false) const {}
   __host__ virtual double sumOfNll (int numVars) const; 
   MetricTaker* logger; 
 private:

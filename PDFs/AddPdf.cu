@@ -108,11 +108,12 @@ EXEC_TARGET fptype device_AddPdfsExt (fptype* evt, fptype* p, size_t* indices) {
   size_t numEvents = indices[4];
   size_t numObs = indices[indices[0]+1];
   size_t eventIndex = (size_t)(evt - (fptype*)eventStartAddress)/numObs;
+  size_t pIndexStart = 5;
   fptype* valueStart = reinterpret_cast<fptype*>(valueStartAddress);
 
-  printf("addr valuestart is %lx\n", valueStart);
+  //printf("addr valuestart is %lx\n", valueStart);
   //printf("numobs is %lu\n", numObs);
-  printf("evt index is %lu\n", (size_t)eventIndex);
+  //printf("evt index is %lu\n", (size_t)eventIndex);
   //printf("components in gpu %lu\n", components);
   //printf("event addr in gpu %lx\n", eventStartAddress);
   //printf("value addr in gpu %lx\n", valueStartAddress);
@@ -122,13 +123,9 @@ EXEC_TARGET fptype device_AddPdfsExt (fptype* evt, fptype* p, size_t* indices) {
   fptype totalWeight = 0;
   for (size_t i = 0; i < components; i ++) {
     size_t inComponentValueIndex = i * numEvents + eventIndex;
-    //printf("in comp idx %lu\n", inComponentValueIndex);
     fptype curr = valueStart[inComponentValueIndex];
-    //printf("curr is %f\n", curr);
-
-    fptype weight = p[indices[i+4]];
-    ret += weight * curr * normalisationFactors[indices[i+1]];
-
+    fptype weight = p[indices[pIndexStart+ 2 * i + 1]];
+    ret += weight * curr * normalisationFactors[indices[pIndexStart + 2 * i]];
     totalWeight += weight;
     //if ((gpuDebug & 1) && (THREADIDX == 0) && (0 == BLOCKIDX))
     //if ((1 > (int) floor(0.5 + evt[8])) && (gpuDebug & 1) && (paramIndices + debugParamIndex == indices))
@@ -168,7 +165,6 @@ AddPdf::AddPdf (std::string n, std::vector<Variable*> weights, std::vector<PdfBa
 
   std::vector<unsigned long> pindices;
 
-  std::cout << "init components " << components.size() << std::endl;
 #if THRUST_DEVICE_SYSTEM==THRUST_DEVICE_BACKEND_OMP
   for (size_t w = 0; w < weights.size(); ++w) {
     assert(components[w]);
@@ -184,27 +180,29 @@ AddPdf::AddPdf (std::string n, std::vector<Variable*> weights, std::vector<PdfBa
   }
 #else
   pindices.push_back(components.size());
-  // reserved for later initialisation by sumOfNLL
+  // reserved for later initialisation by preEvaulateComponents
   // this index is supposed to be actually a device side address
   // to the device vector containing precalculated values of
   // the components
   componentValuesAddressParamIndex = pindices.size();
   pindices.push_back(0);
-  // reserved for later initialisation by sumOfNLL
+  // reserved for later initialisation by preEvaulateComponents
   // meant to contain the address of the start of dev_event_array
   eventArrayAddressParamIndex = pindices.size();
   pindices.push_back(0);
-  // reserved for later initilation by sumOfNLL
-  // meant to contain the number of events to be calculated
+  // reserved for later initilation by preEvaulateComponents
+  // meant to contain the number of events to be calculated.
+  // this is needed for in-kernel pointer arithmetic
   numEventsParamIndex = pindices.size();
   pindices.push_back(0);
-
   for (unsigned int w = 0; w < weights.size(); ++w) {
     assert(components[w]);
+    pindices.push_back(components[w]->getParameterIndex());
     pindices.push_back(registerParameter(weights[w])); 
   }
   assert(components.back()); 
   if (weights.size() < components.size()) {
+    pindices.push_back(components.back()->getParameterIndex());
     extended = false; 
   }
 #endif
@@ -318,7 +316,6 @@ struct AddPdfEval {
     int params = thrust::get<1>(functionTuple);
     fptype* eventAddress = *events + offset;
     y[self.index()] = callFunction(eventAddress, function, params);
-    //y[self.index()] = 0;
   }
 
   size_t xBound;
@@ -339,12 +336,16 @@ __host__ double AddPdf::sumOfNll (int numVars) const {
                     thrust::make_zip_iterator(thrust::make_tuple(eventIndex + numEntries, arrayAddress, eventSize)),
                     *logger, dummy, cudaPlus);
 
+  std::flush(std::cout);
   if (extended) {
     fptype expEvents = 0;
-    //std::cout << "Weights:";
-    for (unsigned int i = 0; i < components.size(); ++i) {
+    for (size_t i = 0; i < components.size(); ++i) {
+#if THRUST_DEVICE_SYSTEM==THRUST_DEVICE_BACKEND_OMP
       expEvents += host_params[host_indices[parameters + 3*(i+1)]];
-      //std::cout << " " << host_params[host_indices[parameters + 3*(i+1)]];
+#else
+      size_t* indices = host_indices + parameters + 1;
+      expEvents += host_params[indices[numEventsParamIndex + 2 * (i+1)]];
+#endif
     }
     // Log-likelihood of numEvents with expectation of exp is (-exp + numEvents*ln(exp) - ln(numEvents!)).
     // The last is constant, so we drop it; and then multiply by minus one to get the negative log-likelihood.
@@ -352,28 +353,36 @@ __host__ double AddPdf::sumOfNll (int numVars) const {
     //std::cout << " " << expEvents << " " << numEvents << " " << (expEvents - numEvents*log(expEvents)) << std::endl;
   }
 
-  std::cout << "returning " << ret << std::endl;
+  //std::cout << "returning " << ret << std::endl;
   return ret;
 }
 
-#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
-void AddPdf::preEvaluateComponents() const {
-  if (numEntries == 0) {
-    return;
-  }
 
-  std::cout << "vector size is " << components.size() * numEntries << std::endl;
+void AddPdf::preEvaluateComponents(bool force) const {
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+  if (!force) {
+    if (!parametersChanged()) {
+      std::cout << "not evaluating" << std::endl;
+      std::flush(std::cout);
+      //return;
+    }
+    if (numEvents == 0) {
+      std::cout << "not evaluating" << std::endl;
+      std::flush(std::cout);
+      //return;
+    }
+  }
 
   if (componentValues) {
     delete componentValues;
   }
 
   thrust::constant_iterator<fptype*> arrayAddress(dev_event_array);
-  componentValues = new thrust::device_vector<fptype>(components.size() * numEntries);
+  componentValues = new thrust::device_vector<fptype>(components.size() * numEvents);
   thrust::device_vector<thrust::tuple<int, int> > functionAndParamIndices(components.size());
   thrust::host_vector<thrust::tuple<int, int> > functionAndParamIndices_host(components.size());
 
-  for (unsigned int i = 0; i < components.size(); ++i) {
+  for (size_t i = 0; i < components.size(); ++i) {
     PdfBase* pdf = components[i];
     functionAndParamIndices_host[i] = thrust::make_tuple(pdf->getFunctionIndex(),
                                                          pdf->getParameterIndex());
@@ -381,35 +390,38 @@ void AddPdf::preEvaluateComponents() const {
   functionAndParamIndices = functionAndParamIndices_host;
 
   AddPdfEval eval(numEntries);
-  bulk_::async(bulk_::par(components.size() * numEntries),
+  bulk_::async(bulk_::par(components.size() * numEvents),
               eval,
               bulk_::root.this_exec,
               componentValues->data(),
               functionAndParamIndices.data(),
               arrayAddress).wait();
 
+  /*
   thrust::host_vector<fptype> hval = *componentValues;
 
   for (int i = 0; i < 100; ++i) {
     std::cout << "val " << i << " : " << hval[i] << std::endl;
   }
+  */
 
   size_t* indices = host_indices + parameters + 1;
-  indices[numEventsParamIndex] = numEntries;
-  indices[eventArrayAddressParamIndex] = (size_t)&dev_event_array[0];
+  indices[numEventsParamIndex] = numEvents;
+  indices[eventArrayAddressParamIndex] = (size_t)dev_event_array;
   indices[componentValuesAddressParamIndex] = (size_t)thrust::raw_pointer_cast(componentValues->data());
 
-  std::cout << "compidx " << 0 << std::endl;
+  /*
   std::cout << "evidx " << eventArrayAddressParamIndex << std::endl;
   std::cout << "validx " << componentValuesAddressParamIndex << std::endl;
   std::cout << "numidx " << numEventsParamIndex << std::endl;
-
-  std::cout << std::hex << "host components " << indices[0] << std::endl;
-  std::cout << std::hex << "host event addr " << (size_t)&dev_event_array[0] << std::endl;
+  std::cout << std::hex << "host components " << indices[1] << std::endl;
+  std::cout << std::hex << "host event addr " << (size_t)dev_event_array << std::endl;
   std::cout << std::hex << "host value addr " << (size_t)thrust::raw_pointer_cast(componentValues->data()) << std::endl;
   std::cout << std::dec << "host num events " << indices[numEventsParamIndex] << std::endl;
-
+  */
   MEMCPY_TO_SYMBOL(paramIndices, host_indices, totalParams*sizeof(unsigned long), 0, cudaMemcpyHostToDevice);
-}
+  storeParameters();
 #endif
+}
+
 
