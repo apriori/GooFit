@@ -200,7 +200,9 @@ __host__ fptype* PdfBase::storeParameters (fptype *cache) const {
 }
 
 __host__ void PdfBase::initializeSetVarProduct() {
-  VariableCartesianProduct product(setObservables);
+  PdfBase::SetObsCont setObs;
+  getSetObservables(setObs);
+  VariableCartesianProduct product(setObs);
   setVariableProduct = product.calculateCartersianProduct();
 }
  

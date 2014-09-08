@@ -14,7 +14,7 @@ VariableValuesSet VariableCartesianProduct::calculateCartersianProduct() {
   }
   VariableValuesSet productResult;
 
-  if (outputSize == 0) {
+  if (variables.size() == 0) {
     return productResult;
   }
 

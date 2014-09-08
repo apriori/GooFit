@@ -250,8 +250,8 @@ __host__ void GooPdf::evaluateAtPoints (Variable* var, std::vector<fptype>& res)
                               allOtherObservables.end());
   }
 
-
-  double step = (var->upperlimit - var->lowerlimit) / var->numbins; 
+  double step = (var->upperlimit - var->lowerlimit) / var->numbins;
+  double obsInitial = var->value;
   for (int i = 0; i < var->numbins; ++i) {
     var->value = var->lowerlimit + (i+0.5)*step;
     PdfBase::obsIter otherObsIter = allOtherObservables.begin();
@@ -262,20 +262,25 @@ __host__ void GooPdf::evaluateAtPoints (Variable* var, std::vector<fptype>& res)
         double otherObsStep = (otherObs->upperlimit - otherObs->lowerlimit) / otherObs->numbins;
         double initialValue = otherObs->value;
 
-        for (int j = 0; j < otherObs->numbins; ++j) {
-          otherObs->value = otherObs->lowerlimit + (j+0.5) * otherObsStep;
-          VariableValuesSet::iterator it = setVariableSet.begin();
+        if (setVariableSet.size() > 0) {
+          for (int j = 0; j < otherObs->numbins; ++j) {
+            otherObs->value = otherObs->lowerlimit + (j+0.5) * otherObsStep;
+            VariableValuesSet::iterator it = setVariableSet.begin();
 
-          for (; it != setVariableSet.end(); ++it) {
-            VariableValues::iterator varSetIter = it->begin();
-            size_t idx = 0;
+            for (; it != setVariableSet.end(); ++it) {
+              VariableValues::iterator varSetIter = it->begin();
+              size_t idx = 0;
 
-            for (; varSetIter != it->end(); ++varSetIter, ++idx) {
-              SetVariable* setVariable = setObservables[idx];
-              setVariable->value = *varSetIter;
-              tempdata.addEvent();
+              for (; varSetIter != it->end(); ++varSetIter, ++idx) {
+                SetVariable* setVariable = setObservables[idx];
+                setVariable->value = *varSetIter;
+                tempdata.addEvent();
+              }
             }
           }
+        }
+        else {
+          tempdata.addEvent();
         }
         otherObs->value = initialValue;
       }
@@ -298,10 +303,10 @@ __host__ void GooPdf::evaluateAtPoints (Variable* var, std::vector<fptype>& res)
       tempdata.addEvent();
     }
   }
+  var->value = obsInitial;
   setData(&tempdata);  
 
   preEvaluateComponents(true);
-  std::cout << "numevents is " << tempdata.numEvents() << std::endl;
  
   thrust::counting_iterator<int> eventIndex(0); 
   thrust::constant_iterator<int> eventSize(observables.size()); 
@@ -318,17 +323,13 @@ __host__ void GooPdf::evaluateAtPoints (Variable* var, std::vector<fptype>& res)
   res.clear();
   res.resize(var->numbins);
 
-  size_t chunkSize = 1;
-
-  if (setVariableSet.size() > 0) {
-    chunkSize = setVariableSet.size();
-  }
+  size_t chunkSize = tempdata.numEvents() / var->numbins;
 
   //chunked loop
   for (size_t i = 0; i < h_results.size(); i+=chunkSize) {
     double intermediateSum = 0;
 
-    for (size_t j = i; j <= i + setObservables.size() && j < h_results.size(); ++j) {
+    for (size_t j = i; j < i + chunkSize && j < h_results.size(); ++j) {
       intermediateSum += h_results[j];
     }
 
