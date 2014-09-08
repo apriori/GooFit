@@ -18,7 +18,12 @@ protected:
   __host__ virtual void preEvaluateComponents(bool force = false) const;
 
 private:
+  void initParallelEvalRequirements();
+
   mutable thrust::device_vector<fptype>* componentValues;
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+  std::vector<cudaStream_t> streams;
+#endif
   int eventArrayAddressParamIndex;
   int componentValuesAddressParamIndex;
   int numEventsParamIndex;

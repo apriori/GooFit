@@ -205,6 +205,7 @@ AddPdf::AddPdf (std::string n, std::vector<Variable*> weights, std::vector<PdfBa
     pindices.push_back(components.back()->getParameterIndex());
     extended = false; 
   }
+  initParallelEvalRequirements();
 #endif
 
   if (extended) GET_FUNCTION_ADDR(ptr_to_AddPdfsExt);
@@ -244,6 +245,11 @@ AddPdf::~AddPdf() {
   if (componentValues) {
     delete componentValues;
   }
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+  for (size_t i = 0; i < components.size(); ++i) {
+    cudaStreamDestroy(streams[i]);
+  }
+#endif
 }
 
 __host__ fptype AddPdf::normalise () const {
@@ -355,15 +361,13 @@ __host__ double AddPdf::sumOfNll (int numVars) const {
                     thrust::make_zip_iterator(thrust::make_tuple(eventIndex + numEntries, arrayAddress, eventSize)),
                     *logger, dummy, cudaPlus);
 
-  std::flush(std::cout);
   if (extended) {
     fptype expEvents = 0;
     for (size_t i = 0; i < components.size(); ++i) {
 #if THRUST_DEVICE_SYSTEM==THRUST_DEVICE_BACKEND_OMP
       expEvents += host_params[host_indices[parameters + 3*(i+1)]];
 #else
-      size_t* indices = host_indices + parameters + 1;
-      expEvents += host_params[indices[numEventsParamIndex + 2 * (i+1)]];
+      expEvents += host_params[host_indices[parameters + numEventsParamIndex + 1 + 2*(i+1)]];
 #endif
     }
     // Log-likelihood of numEvents with expectation of exp is (-exp + numEvents*ln(exp) - ln(numEvents!)).
@@ -380,11 +384,6 @@ __host__ double AddPdf::sumOfNll (int numVars) const {
 void AddPdf::preEvaluateComponents(bool force) const {
 #if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
   if (!force) {
-    if (!parametersChanged()) {
-      std::cout << "not evaluating" << std::endl;
-      std::flush(std::cout);
-      //return;
-    }
     if (numEvents == 0) {
       std::cout << "not evaluating" << std::endl;
       std::flush(std::cout);
@@ -392,22 +391,17 @@ void AddPdf::preEvaluateComponents(bool force) const {
     }
   }
 
-  if (componentValues) {
-    delete componentValues;
+  if (!componentValues) {
+    componentValues = new thrust::device_vector<fptype>(components.size() * numEvents);
   }
 
   thrust::constant_iterator<fptype*> arrayAddress(dev_event_array);
-  componentValues = new thrust::device_vector<fptype>(components.size() * numEvents);
-
-  std::vector<cudaStream_t> streams;
-  streams.resize(components.size());
 
   std::vector<bulk_::future<void> > futures;
 
   AddPdfEval eval(numEntries);
   for (size_t i = 0; i < components.size(); ++i) {
     PdfBase* pdf = components[i];
-    cudaStreamCreate(&streams[i]);
     futures.push_back(
       bulk_::async(bulk_::par(streams[i], numEvents),
                    eval,
@@ -421,7 +415,6 @@ void AddPdf::preEvaluateComponents(bool force) const {
 
   for (size_t i = 0; i < components.size(); ++i) {
     futures[i].wait();
-    cudaStreamDestroy(streams[i]);
   }
 
   /*
@@ -459,7 +452,15 @@ void AddPdf::preEvaluateComponents(bool force) const {
   std::cout << std::dec << "host num events " << indices[numEventsParamIndex] << std::endl;
   */
   MEMCPY_TO_SYMBOL(paramIndices, host_indices, totalParams*sizeof(unsigned long), 0, cudaMemcpyHostToDevice);
-  storeParameters();
+#endif
+}
+
+void AddPdf::initParallelEvalRequirements() {
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+  streams.resize(components.size());
+  for (size_t i = 0; i < components.size(); ++i) {
+    cudaStreamCreate(&streams[i]);
+  }
 #endif
 }
 
