@@ -240,6 +240,12 @@ AddPdf::AddPdf (std::string n, Variable* frac1, PdfBase* func1, PdfBase* func2)
   initialise(pindices);
 }
 
+AddPdf::~AddPdf() {
+  if (componentValues) {
+    delete componentValues;
+  }
+}
+
 __host__ fptype AddPdf::normalise () const {
   //if (cpuDebug & 1) std::cout << "Normalising AddPdf " << getName() << std::endl;
   fptype ret = 0;
@@ -318,6 +324,19 @@ struct AddPdfEval {
     y[self.index()] = callFunction(eventAddress, function, params);
   }
 
+  EXEC_TARGET
+  void operator()(bulk_::agent<> &self,
+                  thrust::device_ptr<fptype> y,
+                  size_t component,
+                  size_t function,
+                  size_t params,
+                  thrust::constant_iterator<fptype*> events
+                  ) {
+    size_t offsetResult = self.index() + component * xBound;
+    fptype* eventAddress = *events + self.index();
+    y[offsetResult] = callFunction(eventAddress, function, params);
+  }
+
   size_t xBound;
 };
 #endif
@@ -379,16 +398,33 @@ void AddPdf::preEvaluateComponents(bool force) const {
 
   thrust::constant_iterator<fptype*> arrayAddress(dev_event_array);
   componentValues = new thrust::device_vector<fptype>(components.size() * numEvents);
-  thrust::device_vector<thrust::tuple<int, int> > functionAndParamIndices(components.size());
-  thrust::host_vector<thrust::tuple<int, int> > functionAndParamIndices_host(components.size());
 
+  std::vector<cudaStream_t> streams;
+  streams.resize(components.size());
+
+  std::vector<bulk_::future<void> > futures;
+
+  AddPdfEval eval(numEntries);
   for (size_t i = 0; i < components.size(); ++i) {
     PdfBase* pdf = components[i];
-    functionAndParamIndices_host[i] = thrust::make_tuple(pdf->getFunctionIndex(),
-                                                         pdf->getParameterIndex());
+    cudaStreamCreate(&streams[i]);
+    futures.push_back(
+      bulk_::async(bulk_::par(streams[i], numEvents),
+                   eval,
+                   bulk_::root.this_exec,
+                   componentValues->data(),
+                   i,
+                   pdf->getFunctionIndex(),
+                   pdf->getParameterIndex(),
+                   arrayAddress));
   }
-  functionAndParamIndices = functionAndParamIndices_host;
 
+  for (size_t i = 0; i < components.size(); ++i) {
+    futures[i].wait();
+    cudaStreamDestroy(streams[i]);
+  }
+
+  /*
   AddPdfEval eval(numEntries);
   bulk_::async(bulk_::par(components.size() * numEvents),
               eval,
@@ -396,6 +432,9 @@ void AddPdf::preEvaluateComponents(bool force) const {
               componentValues->data(),
               functionAndParamIndices.data(),
               arrayAddress).wait();
+  */
+
+
 
   /*
   thrust::host_vector<fptype> hval = *componentValues;
