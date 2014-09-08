@@ -270,14 +270,14 @@ __host__ fptype AddPdf::normalise () const {
   }
 #else
   for (ptrdiff_t i = 0; i < components.size()-1; ++i) {
-    fptype weight = host_params[host_indices[parameters + numEventsParamIndex + 1 + i]];
+    fptype weight = host_params[host_indices[parameters + numEventsParamIndex + 1 + 2*(i+1)]];
     totalWeight += weight;
     fptype curr = components[i]->normalise();
     ret += curr*weight;
   }
   fptype last = components.back()->normalise();
   if (extended) {
-    fptype lastWeight = host_params[host_indices[parameters + numEventsParamIndex + 1 + components.size()]];
+    fptype lastWeight = host_params[host_indices[parameters + numEventsParamIndex + 1 + 2*(components.size())]];
     totalWeight += lastWeight;
     ret += last * lastWeight;
     ret /= totalWeight;
