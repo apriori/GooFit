@@ -31,6 +31,11 @@ extern int totalConstants;
 #pragma omp threadprivate (host_callnumber)
 #endif
 
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+#include <thrust/system/cuda/detail/bulk.h>
+using namespace thrust::system::cuda::detail;
+#endif
+
 struct Variable;
 class PdfBase {
 
@@ -104,8 +109,16 @@ public:
   void clearCurrentFit (); 
   __host__ VariableValuesSet getSetVariableProduct() const { return setVariableProduct; }
 
+   __host__ void recursiveOnDataChanged(size_t numEvents);
+
 protected:
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+   __host__ virtual void preEvaluateComponents(std::vector<bulk_::future<void> >& futures) const {}
+#endif
+
+   __host__ void recursivePreEvaluateComponents() const;
    __host__ void initializeSetVarProduct();
+   __host__ virtual void onDataChanged(size_t numEvents) {}
 
   VariableValuesSet setVariableProduct;
   fptype numEvents;         // Non-integer to allow weighted events

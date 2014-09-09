@@ -56,7 +56,6 @@ public:
   __host__ void setDebugMask (int mask, bool setSpecific = true) const; 
 
 protected:
-    __host__ virtual void preEvaluateComponents(bool force = false) const {}
   __host__ virtual double sumOfNll (int numVars) const; 
   MetricTaker* logger; 
 private:

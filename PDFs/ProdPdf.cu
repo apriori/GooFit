@@ -18,6 +18,8 @@ EXEC_TARGET fptype device_ProdPdfs (fptype* evt, fptype* p, unsigned long* indic
     //printf("device_Prod 2: (%f %f %f %f %f) %f %f %f %i %i %i\n", evt[0], evt[1], evt[2], evt[3], evt[4], curr, ret, normalisationFactors[parIdx], i, parIdx, numParams);
     ret *= curr;
 
+    printf("curr %f norm %f\n", curr, normalisationFactors[parIdx]);
+
     //if ((0 == THREADIDX) && (0 == BLOCKIDX) && (gpuDebug & 1) && (paramIndices + debugParamIndex == indices))
     //if ((1 > (int) floor(0.5 + evt[8])) && (gpuDebug & 1) && (paramIndices + debugParamIndex == indices))
     //if (0.0001 < ret) 

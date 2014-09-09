@@ -139,7 +139,7 @@ __host__ void GooPdf::initialise (std::vector<unsigned long> pindices, void* dev
   // MetricTaker must be created after PdfBase initialisation is done.
   PdfBase::initialiseIndices(pindices); 
 
-  functionIdx = findFunctionIdx(dev_functionPtr); 
+  functionIdx = findFunctionIdx(dev_functionPtr);
   setMetrics(); 
 }
 
@@ -160,6 +160,8 @@ __host__ void GooPdf::setMetrics () {
 }
 
 __host__ double GooPdf::sumOfNll (int numVars) const {
+  recursivePreEvaluateComponents();
+
   static thrust::plus<double> cudaPlus;
   thrust::constant_iterator<int> eventSize(numVars); 
   thrust::constant_iterator<fptype*> arrayAddress(dev_event_array);
@@ -306,7 +308,7 @@ __host__ void GooPdf::evaluateAtPoints (Variable* var, std::vector<fptype>& res)
   var->value = obsInitial;
   setData(&tempdata);  
 
-  preEvaluateComponents(true);
+  recursivePreEvaluateComponents();
  
   thrust::counting_iterator<int> eventIndex(0); 
   thrust::constant_iterator<int> eventSize(observables.size()); 
@@ -475,7 +477,7 @@ __host__ fptype GooPdf::getValue () {
   point.addEvent(); 
   setData(&point);
 
-  preEvaluateComponents();
+  recursivePreEvaluateComponents();
 
   thrust::counting_iterator<int> eventIndex(0); 
   thrust::constant_iterator<int> eventSize(observables.size()); 
@@ -519,7 +521,7 @@ __host__ fptype GooPdf::normalise () const {
   }
   ret /= totalBins; 
 
-  preEvaluateComponents();
+  recursivePreEvaluateComponents();
 
   fptype dummy = 0; 
   static thrust::plus<fptype> cudaPlus;
@@ -669,7 +671,7 @@ __host__ void GooPdf::getCompProbsAtDataPoints (std::vector<std::vector<fptype> 
     numVars *= -1; 
   }
 
-  preEvaluateComponents();
+  recursivePreEvaluateComponents();
 
   thrust::device_vector<fptype> results(numEntries); 
   thrust::constant_iterator<int> eventSize(numVars); 
@@ -710,7 +712,7 @@ __host__ void GooPdf::transformGrid (fptype* host_output) {
     totalBins *= (*v)->numbins; 
   }
 
-  preEvaluateComponents();
+  recursivePreEvaluateComponents();
 
   thrust::constant_iterator<fptype*> arrayAddress(normRanges); 
   thrust::constant_iterator<int> eventSize(observables.size());

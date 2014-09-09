@@ -190,7 +190,8 @@ __host__ void PdfBase::setData (std::vector<std::map<Variable*, fptype> >& data)
   gooMalloc((void**) &dev_event_array, dimensions*numEntries*sizeof(fptype)); 
   MEMCPY(dev_event_array, host_array, dimensions*numEntries*sizeof(fptype), cudaMemcpyHostToDevice);
   MEMCPY_TO_SYMBOL(functorConstants, &numEvents, sizeof(fptype), 0, cudaMemcpyHostToDevice); 
-  delete[] host_array; 
+  delete[] host_array;
+  recursiveOnDataChanged(numEvents);
 }
 
 __host__ void PdfBase::recursiveSetIndices () {
@@ -247,7 +248,8 @@ __host__ void PdfBase::setData (UnbinnedDataSet* data) {
   gooMalloc((void**) &dev_event_array, dimensions*numEntries*sizeof(fptype)); 
   MEMCPY(dev_event_array, host_array, dimensions*numEntries*sizeof(fptype), cudaMemcpyHostToDevice);
   MEMCPY_TO_SYMBOL(functorConstants, &numEvents, sizeof(fptype), 0, cudaMemcpyHostToDevice); 
-  delete[] host_array; 
+  delete[] host_array;
+  recursiveOnDataChanged(numEvents);
 }
 
 __host__ void PdfBase::setData (BinnedDataSet* data) { 
@@ -277,7 +279,8 @@ __host__ void PdfBase::setData (BinnedDataSet* data) {
   gooMalloc((void**) &dev_event_array, dimensions*numEntries*sizeof(fptype)); 
   MEMCPY(dev_event_array, host_array, dimensions*numEntries*sizeof(fptype), cudaMemcpyHostToDevice);
   MEMCPY_TO_SYMBOL(functorConstants, &numEvents, sizeof(fptype), 0, cudaMemcpyHostToDevice); 
-  delete[] host_array; 
+  delete[] host_array;
+  recursiveOnDataChanged(numEvents);
 }
 
 __host__ void PdfBase::generateNormRange () {
@@ -305,6 +308,27 @@ void PdfBase::clearCurrentFit () {
   totalParams = 0; 
   gooFree(dev_event_array);
   dev_event_array = 0;
+}
+
+void PdfBase::recursiveOnDataChanged(size_t numEvents) {
+  onDataChanged(numEvents);
+  for (size_t i = 0; i < components.size(); ++i) {
+    components[i]->recursiveOnDataChanged(numEvents);
+  }
+}
+
+void PdfBase::recursivePreEvaluateComponents() const {
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+  std::vector<bulk_::future<void> > futures;
+  preEvaluateComponents(futures);
+  for (size_t i = 0; i < components.size(); ++i) {
+    components[i]->preEvaluateComponents(futures);
+  }
+
+  for (size_t i = 0; i < futures.size(); ++i) {
+    futures[i].wait();
+  }
+#endif
 }
 
 __host__ void PdfBase::printProfileInfo (bool topLevel) {
