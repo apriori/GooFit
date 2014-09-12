@@ -33,7 +33,7 @@ public:
 
   __host__ virtual double calculateNLL () const;
   __host__ void evaluateAtPoints (std::vector<fptype>& points) const; 
-  __host__ void evaluateAtPoints (Variable* var, std::vector<fptype>& res); 
+  __host__ void evaluateAtPoints (Variable* var, std::vector<fptype>& res, bool normalized);
   __host__ virtual fptype normalise () const;
   __host__ virtual fptype integrate (fptype lo, fptype hi) const {return 0;}
   __host__ virtual bool hasAnalyticIntegral () const {return false;} 
@@ -59,6 +59,11 @@ protected:
   __host__ virtual double sumOfNll (int numVars) const; 
   MetricTaker* logger; 
 private:
+  __host__ void scanVariable(Variable* var,
+                             VariableValuesSet setVariableSet,
+                             DataSet &dataSet,
+                             SetObsCont& setObservables,
+                             obsCont otherObservables);
 
 };
 
