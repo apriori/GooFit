@@ -15,7 +15,7 @@ EXEC_TARGET fptype device_MapReduceProdPdf (fptype* evt, fptype* p, unsigned lon
     size_t inComponentValueIndex = i * numEvents + eventIndex;
     fptype curr = valueStart[inComponentValueIndex];
 
-    printf("curr %f norm %f\n", curr, normalisationFactors[indices[pIndexStart + 2 * i + 1]]);
+    //printf("curr %f norm %f\n", curr, normalisationFactors[indices[pIndexStart + 2 * i + 1]]);
 
     ret *= normalisationFactors[indices[pIndexStart + 2 * i + 1]];
     ret *= curr;

@@ -105,7 +105,7 @@ void MapReducePdf::onDataChanged(size_t numEvents) {
 }
 
 void MapReducePdf::preEvaluateComponents(std::vector<bulk_::future<void> >& futures) const {
-  std::cout << "pre eval " << getName() << std::endl;
+  //std::cout << "pre eval " << getName() << std::endl;
 #if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
   if (numEvents == 0) {
     return;

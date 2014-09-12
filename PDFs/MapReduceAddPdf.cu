@@ -159,6 +159,6 @@ __host__ double MapReduceAddPdf::sumOfNll(int numVars) const {
   }
 
   //std::cout << "returning " << ret << std::endl;
-  exit(1);
+  //exit(1);
   return ret;
 }

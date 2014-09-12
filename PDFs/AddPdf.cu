@@ -182,6 +182,5 @@ __host__ double AddPdf::sumOfNll (int numVars) const {
     ret += (expEvents - numEvents*log(expEvents)); 
     //std::cout << " " << expEvents << " " << numEvents << " " << (expEvents - numEvents*log(expEvents)) << std::endl; 
   }
-  exit(1);
   return ret; 
 }
