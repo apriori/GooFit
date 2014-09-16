@@ -37,6 +37,8 @@ using namespace thrust::system::cuda::detail;
 #endif
 
 struct Variable;
+class PdfGraphEvaluator;
+
 class PdfBase {
 
 public:
@@ -88,6 +90,13 @@ public:
   __host__ void registerObservable (SetVariable* obs);
   __host__ void setIntegrationFineness (int i); 
   __host__ void printProfileInfo (bool topLevel = true);
+  __host__ const std::vector<PdfBase*> getComponents()
+  {
+    std::vector<PdfBase*> tmp;
+    for(std::vector<PdfBase*>::iterator i = components.begin(); i != components.end(); i++)
+      tmp.push_back(*i);
+    return tmp;
+  }
   __host__ const std::vector<const PdfBase*> getComponents() const
   {
     std::vector<const PdfBase*> tmp;
@@ -111,11 +120,10 @@ public:
 
    __host__ void recursiveOnDataChanged(size_t numEvents);
 
-protected:
 #if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
    __host__ virtual void preEvaluateComponents(std::vector<bulk_::future<void> >& futures) const {}
 #endif
-
+protected:
    __host__ void recursivePreEvaluateComponents() const;
    __host__ void initializeSetVarProduct();
    __host__ virtual void onDataChanged(size_t numEvents) {}
@@ -137,6 +145,10 @@ protected:
   bool properlyInitialised; // Allows checking for required extra steps in, eg, Tddp and Convolution. 
 
   unsigned int functionIdx; // Stores index of device function pointer. 
+
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+  PdfGraphEvaluator* evaluator;
+#endif
 
 private:
   std::string name; 

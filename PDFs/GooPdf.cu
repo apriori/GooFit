@@ -284,12 +284,6 @@ __host__ void GooPdf::scanVariable(Variable* var,
 }
 
 __host__ void GooPdf::evaluateAtPoints (Variable* var, std::vector<fptype>& res, bool normalized) {
-  // NB: This does not project correctly in multidimensional datasets, because all observables
-  // other than 'var' will have, for every event, whatever value they happened to get set to last
-  // time they were set. This is likely to be the value from the last event in whatever dataset
-  // you were fitting to, but at any rate you don't get the probability-weighted integral over
-  // the other observables. 
-
   copyParams(); 
   normalise(); 
   MEMCPY_TO_SYMBOL(normalisationFactors, host_normalisation, totalParams*sizeof(fptype), 0, cudaMemcpyHostToDevice); 
@@ -314,6 +308,7 @@ __host__ void GooPdf::evaluateAtPoints (Variable* var, std::vector<fptype>& res,
                               allOtherObservables.end());
   }
 
+  //recursively scan all variables, to create the nested integrals
   scanVariable(var, setVariableSet, tempdata, setObservables, allOtherObservables);
   setData(&tempdata);  
 

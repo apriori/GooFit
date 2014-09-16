@@ -25,6 +25,9 @@ PdfBase::PdfBase (Variable* x, std::string n)
   , properlyInitialised(true) // Special-case PDFs should set to false. 
   , functionIdx(0)
   , name(n)
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+  , evaluator(NULL)
+#endif
 {
   if (x) registerObservable(x);
 }

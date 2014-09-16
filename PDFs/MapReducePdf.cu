@@ -57,10 +57,12 @@ MapReducePdf::MapReducePdf(std::string n,
   indices.push_back(0);
 
   for (size_t i = 0; i < comps.size(); ++i) {
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
     cudaStream_t stream;
     cudaStreamCreate(&stream);
 
     streams.push_back(stream);
+#endif
     components.push_back(comps[i]);
     indices.push_back(comps[i]->getFunctionIndex());
     indices.push_back(comps[i]->getParameterIndex());
@@ -104,9 +106,9 @@ void MapReducePdf::onDataChanged(size_t numEvents) {
 #endif
 }
 
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
 void MapReducePdf::preEvaluateComponents(std::vector<bulk_::future<void> >& futures) const {
   //std::cout << "pre eval " << getName() << std::endl;
-#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
   if (numEvents == 0) {
     return;
   }
@@ -127,5 +129,5 @@ void MapReducePdf::preEvaluateComponents(std::vector<bulk_::future<void> >& futu
                    pdf->getParameterIndex(),
                    arrayAddress));
   }
-#endif
 }
+#endif

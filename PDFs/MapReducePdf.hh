@@ -20,15 +20,16 @@ public:
   __host__ virtual fptype normalise () const = 0;
   __host__ virtual bool hasAnalyticIntegral () const { return false; }
 
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+   __host__ virtual void preEvaluateComponents(std::vector<bulk_::future<void> >& futures) const;
+#endif
+
 private:
   std::vector<size_t> indices;
 
 protected:
   __host__ void delayedInitialize();
   __host__ virtual void onDataChanged(size_t numEvents);
-#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
-   __host__ virtual void preEvaluateComponents(std::vector<bulk_::future<void> >& futures) const;
-#endif
 
   void initParallelEvalRequirements();
 #if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP

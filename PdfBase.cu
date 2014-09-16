@@ -1,5 +1,9 @@
 #include "PdfBase.hh"
 
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+#include "PdfGraphEvaluator.hh"
+#endif
+
 // These variables are either function-pointer related (thus specific to this implementation)
 // or constrained to be in the CUDAglob translation unit by nvcc limitations; otherwise they 
 // would be in PdfBase. 
@@ -173,7 +177,6 @@ __host__ void PdfBase::setData (std::vector<std::map<Variable*, fptype> >& data)
     gooFree(dev_event_array);
     dev_event_array = 0; 
   }
-
   setIndices();
   int dimensions = observables.size();
   numEntries = data.size();
@@ -192,6 +195,14 @@ __host__ void PdfBase::setData (std::vector<std::map<Variable*, fptype> >& data)
   MEMCPY_TO_SYMBOL(functorConstants, &numEvents, sizeof(fptype), 0, cudaMemcpyHostToDevice); 
   delete[] host_array;
   recursiveOnDataChanged(numEvents);
+
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+  if (evaluator) {
+    delete evaluator;
+  }
+  evaluator = new PdfGraphEvaluator();
+  evaluator->constructFromTopLevelPdf(this);
+#endif
 }
 
 __host__ void PdfBase::recursiveSetIndices () {
@@ -250,6 +261,14 @@ __host__ void PdfBase::setData (UnbinnedDataSet* data) {
   MEMCPY_TO_SYMBOL(functorConstants, &numEvents, sizeof(fptype), 0, cudaMemcpyHostToDevice); 
   delete[] host_array;
   recursiveOnDataChanged(numEvents);
+
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+  if (evaluator) {
+    delete evaluator;
+  }
+  evaluator = new PdfGraphEvaluator();
+  evaluator->constructFromTopLevelPdf(this);
+#endif
 }
 
 __host__ void PdfBase::setData (BinnedDataSet* data) { 
@@ -281,6 +300,14 @@ __host__ void PdfBase::setData (BinnedDataSet* data) {
   MEMCPY_TO_SYMBOL(functorConstants, &numEvents, sizeof(fptype), 0, cudaMemcpyHostToDevice); 
   delete[] host_array;
   recursiveOnDataChanged(numEvents);
+
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+  if (evaluator) {
+    delete evaluator;
+  }
+  evaluator = new PdfGraphEvaluator();
+  evaluator->constructFromTopLevelPdf(this);
+#endif
 }
 
 __host__ void PdfBase::generateNormRange () {
@@ -319,15 +346,7 @@ void PdfBase::recursiveOnDataChanged(size_t numEvents) {
 
 void PdfBase::recursivePreEvaluateComponents() const {
 #if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
-  std::vector<bulk_::future<void> > futures;
-  preEvaluateComponents(futures);
-  for (size_t i = 0; i < components.size(); ++i) {
-    components[i]->preEvaluateComponents(futures);
-  }
-
-  for (size_t i = 0; i < futures.size(); ++i) {
-    futures[i].wait();
-  }
+  evaluator->evaluate();
 #endif
 }
 
