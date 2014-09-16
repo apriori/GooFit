@@ -3,16 +3,17 @@
 #include "PdfBase.hh"
 #include <queue>
 
-PdfGraphEvaluator::PdfGraphEvaluator()
-  : rootNode(NULL) {
+__host__ PdfGraphEvaluator::PdfGraphEvaluator()
+  : hasComponentGraph(false)
+  , rootNode(NULL) {
 }
 
-PdfGraphEvaluator::~PdfGraphEvaluator() {
+__host__ PdfGraphEvaluator::~PdfGraphEvaluator() {
 
 }
 
 
-PdfNodeState::PdfNodeState(PdfGraphEvaluator* evaluator,
+__host__ PdfNodeState::PdfNodeState(PdfGraphEvaluator* evaluator,
                            PdfBase* pdf,
                            PdfNodeState* parent)
   : evaluator(evaluator)
@@ -23,54 +24,57 @@ PdfNodeState::PdfNodeState(PdfGraphEvaluator* evaluator,
   , parent(parent) {
 }
 
-void PdfNodeState::resetState() {
+__host__ void PdfNodeState::resetState() {
   setEvaluated(false);
 }
 
-void PdfNodeState::recursiveReset() {
+__host__ void PdfNodeState::recursiveReset() {
   setEvaluated(false);
   for (size_t i = 0;i < children.size(); ++i) {
     children[i]->recursiveReset();
   }
 }
 
-void PdfNodeState::addChildren(PdfBase* pdf) {
+__host__ void PdfNodeState::addChildren(PdfBase* pdf) {
   children.push_back(new PdfNodeState(evaluator, pdf, this));
 }
 
-void PdfNodeState::addChildren(PdfNodeState* state) {
+__host__ void PdfNodeState::addChildren(PdfNodeState* state) {
   children.push_back(state);
 }
 
-void PdfNodeState::evaluate() {
+__host__ void PdfNodeState::evaluate() {
+  //std::cout << "EVAL " << pdf->getName() << std::endl;
+
   if (isEvaluated) {
     return;
   }
 
 #if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
-  std::pair<PdfNodeState*, std::vector<bulk_::future<void> >> pair;
+  std::pair<PdfNodeState*, std::vector<bulk_::future<void> > > pair;
   pair.first = this;
   pdf->preEvaluateComponents(pair.second);
 #endif
 }
 
-PdfNodeState::~PdfNodeState() {
+__host__ PdfNodeState::~PdfNodeState() {
 
 }
 
-void PdfNodeState::notifyParentOfEvaluated() {
+__host__ void PdfNodeState::notifyParentOfEvaluated() {
   setEvaluated(true);
 }
 
-void PdfGraphEvaluator::constructFromTopLevelPdf(PdfBase* pdf) {
-  /*
-  constructFromPdf(pdf);
-  analyzeAndFlatten();
-  */
+__host__ void PdfGraphEvaluator::constructFromTopLevelPdf(PdfBase* pdf) {
+  if (pdf->getComponents().size() > 0) {
+    constructFromPdf(pdf);
+    analyzeAndFlatten();
+    hasComponentGraph = true;
+  }
 }
 
-void PdfGraphEvaluator::constructFromPdf(PdfBase* pdf,
-                                         PdfNodeState* parent) {
+__host__ void PdfGraphEvaluator::constructFromPdf(PdfBase* pdf,
+                                                  PdfNodeState* parent) {
   PdfNodeState* newParent = new PdfNodeState(this, pdf, parent);
 
   if (parent == NULL) {
@@ -87,16 +91,18 @@ void PdfGraphEvaluator::constructFromPdf(PdfBase* pdf,
   }
 }
 
-void PdfGraphEvaluator::evaluate() {
-  checkAffectedSubGraph();
+__host__ void PdfGraphEvaluator::evaluate() {
+  if (hasComponentGraph) {
+    checkAffectedSubGraph();
 
-  std::vector<NodeEvaluation*>::reverse_iterator it = flattenedGraph.rbegin();
-  for ( ; it != flattenedGraph.rend(); it++) {
-    //(*it)->evaluate();
+    std::vector<NodeEvaluation*>::reverse_iterator it = flattenedGraph.rbegin();
+    for ( ; it != flattenedGraph.rend(); it++) {
+      (*it)->evaluate();
+    }
   }
 }
 
-void PdfGraphEvaluator::syncAndFlush() {
+__host__ void PdfGraphEvaluator::syncAndFlush() {
 #if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
   for (size_t i = 0; i < futurePool.size(); ++i) {
 
@@ -108,13 +114,12 @@ void PdfGraphEvaluator::syncAndFlush() {
       pdfState->notifyParentOfEvaluated();
     }
     pdfState->setEvaluated(true);
-
   }
   futurePool.clear();
 #endif
 }
 
-void PdfGraphEvaluator::analyzeAndFlatten() {
+__host__ void PdfGraphEvaluator::analyzeAndFlatten() {
   std::queue<PdfNodeState*> nodes;
   nodes.push(rootNode);
 
@@ -136,16 +141,19 @@ void PdfGraphEvaluator::analyzeAndFlatten() {
   }
 }
 
-void PdfGraphEvaluator::checkAffectedSubGraph() {
-  rootNode->recursiveReset();
+__host__ void PdfGraphEvaluator::checkAffectedSubGraph() {
+  if (rootNode != NULL) {
+    rootNode->recursiveReset();
+  }
 }
 
 
-SyncOperation::SyncOperation(PdfGraphEvaluator* evaluator)
+__host__ SyncOperation::SyncOperation(PdfGraphEvaluator* evaluator)
  : evaluator(evaluator) {
 
 }
 
-void SyncOperation::evaluate() {
+__host__ void SyncOperation::evaluate() {
+  //std::cout << "SYNC " << std::endl;
   evaluator->syncAndFlush();
 }

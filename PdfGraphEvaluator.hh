@@ -14,27 +14,27 @@ class PdfGraphEvaluator;
 
 class NodeEvaluation {
 public:
-  NodeEvaluation() {}
-  virtual ~NodeEvaluation() {}
-  virtual void evaluate() = 0;
+  __host__ NodeEvaluation() {}
+  __host__ virtual ~NodeEvaluation() {}
+  __host__ virtual void evaluate() = 0;
 };
 
 class PdfNodeState : public NodeEvaluation {
 public:
-  PdfNodeState(PdfGraphEvaluator* evaluator,
+  __host__ PdfNodeState(PdfGraphEvaluator* evaluator,
                PdfBase* pdf,
                PdfNodeState* parent);
-  PdfBase* getPdf();
-  void resetState();
-  void recursiveReset();
-  void addChildren(PdfBase* pdf);
-  void addChildren(PdfNodeState* state);
-  virtual void evaluate();
+  __host__ PdfBase* getPdf();
+  __host__ void resetState();
+  __host__ void recursiveReset();
+  __host__ void addChildren(PdfBase* pdf);
+  __host__ void addChildren(PdfNodeState* state);
+  __host__ virtual void evaluate();
 
-  virtual ~PdfNodeState();
-  const std::vector<PdfNodeState*> getChildren() const { return children; }
-  void notifyParentOfEvaluated();
-  void setEvaluated(bool done) { isEvaluated = done; }
+  __host__ virtual ~PdfNodeState();
+  __host__ const std::vector<PdfNodeState*> getChildren() const { return children; }
+  __host__ void notifyParentOfEvaluated();
+  __host__ void setEvaluated(bool done) { isEvaluated = done; }
 
 private:
   PdfGraphEvaluator* evaluator;
@@ -49,27 +49,28 @@ private:
 
 class SyncOperation : public NodeEvaluation {
 public:
-  SyncOperation(PdfGraphEvaluator* evaluator);
-  virtual ~SyncOperation() {}
-  virtual void evaluate();
+  __host__ SyncOperation(PdfGraphEvaluator* evaluator);
+  __host__ virtual ~SyncOperation() {}
+  __host__ virtual void evaluate();
 private:
   PdfGraphEvaluator* evaluator;
 };
 
 class PdfGraphEvaluator {
 public:
-  PdfGraphEvaluator();
-  virtual ~PdfGraphEvaluator();
-  void constructFromTopLevelPdf(PdfBase* pdf);
-  void evaluate();
-  void syncAndFlush();
+  __host__ PdfGraphEvaluator();
+  __host__ virtual ~PdfGraphEvaluator();
+  __host__ void constructFromTopLevelPdf(PdfBase* pdf);
+  __host__ void evaluate();
+  __host__ void syncAndFlush();
 
 private:
-  void analyzeAndFlatten();
-  void constructFromPdf(PdfBase* pdf,
+  __host__ void analyzeAndFlatten();
+  __host__ void constructFromPdf(PdfBase* pdf,
                         PdfNodeState* parent = NULL);
-  void recursiveDelete();
-  void checkAffectedSubGraph();
+  __host__ void recursiveDelete();
+  __host__ void checkAffectedSubGraph();
+  bool hasComponentGraph;
   PdfNodeState* rootNode;
   std::vector<NodeEvaluation*> flattenedGraph;
 #if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
