@@ -86,7 +86,8 @@ __host__ fptype MapReduceAddPdf::normalise() const {
     ret += curr*weight;
   }
   fptype last = components.back()->normalise();
-  if (extended) {
+  //if (extended) {
+  if (true) {
     fptype lastWeight = host_params[host_indices[parameters + 3*components.size()]];
     totalWeight += lastWeight;
     ret += last * lastWeight;
