@@ -2,6 +2,7 @@
 #define PDFGRAPHEVALUATOR_HH
 
 #include "GlobalCudaDefines.hh"
+#include "PdfBase.hh"
 
 #if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
 #include <thrust/system/cuda/detail/bulk.h>
@@ -17,6 +18,7 @@ public:
   __host__ NodeEvaluation() {}
   __host__ virtual ~NodeEvaluation() {}
   __host__ virtual void evaluate() = 0;
+  __host__ virtual std::string getDescription() const = 0;
 };
 
 class PdfNodeState : public NodeEvaluation {
@@ -35,6 +37,7 @@ public:
   __host__ const std::vector<PdfNodeState*> getChildren() const { return children; }
   __host__ void notifyParentOfEvaluated();
   __host__ void setEvaluated(bool done) { isEvaluated = done; }
+  __host__ virtual std::string getDescription() const { return "PdfEvaluation: " + pdf->getName(); }
 
 private:
   PdfGraphEvaluator* evaluator;
@@ -52,6 +55,7 @@ public:
   __host__ SyncOperation(PdfGraphEvaluator* evaluator);
   __host__ virtual ~SyncOperation() {}
   __host__ virtual void evaluate();
+  __host__ virtual std::string getDescription() const { return "Sync"; }
 private:
   PdfGraphEvaluator* evaluator;
 };
