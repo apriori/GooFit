@@ -44,6 +44,8 @@ public:
   bool fit ();
   void getMinuitValues () const;
   virtual ~FitManager();
+  int getFitStatus() const { return fitStatus; }
+  int getHesseStatus() const { return hesseStatus; }
 
 protected:
   PdfBase* pdfPointer;
@@ -51,6 +53,8 @@ protected:
   ROOT::Minuit2::Minuit2Minimizer* minimizer;
   std::vector<Variable*> vars;
   int numPars;
+  int fitStatus;
+  int hesseStatus;
 };
 
 #endif

@@ -45,7 +45,9 @@ FitManager::FitManager(PdfBase *dat, ROOT::Minuit2::EMinimizerType minmizerType,
   : pdfPointer(dat)
   , pdfProxy(new PdfFunctionProxy(*dat))
   , minimizer(new ROOT::Minuit2::Minuit2Minimizer(minmizerType))
-  , vars(pdfPointer->getParameters()) {
+  , vars(pdfPointer->getParameters())
+  , fitStatus(-1)
+  , hesseStatus(-1) {
   minimizer->SetFunction(*pdfProxy);
   minimizer->SetDefaultOptions();
   minimizer->SetStrategy(strategy);
@@ -80,7 +82,14 @@ bool FitManager::fit() {
   minimizer->SetMaxFunctionCalls(minimizer->NFree() * 500);
   minimizer->SetMaxIterations(minimizer->NFree() * 500);
 
-  return minimizer->Minimize() && minimizer->Hesse();
+  bool result = minimizer->Minimize();
+  fitStatus = minimizer->Status();
+
+  if (result) {
+    result = minimizer->Hesse();
+    hesseStatus = minimizer->Status();
+  }
+  return result;
 }
 
 
