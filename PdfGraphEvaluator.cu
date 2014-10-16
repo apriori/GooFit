@@ -9,7 +9,12 @@ __host__ PdfGraphEvaluator::PdfGraphEvaluator()
 }
 
 __host__ PdfGraphEvaluator::~PdfGraphEvaluator() {
-
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+  for (size_t i = 0; i < futurePool.size(); ++i) {
+    std::pair<PdfNodeState*, std::vector<bulk_::future<void> >* >& element = futurePool[i];
+    delete element.second;
+  }
+#endif
 }
 
 
@@ -21,7 +26,14 @@ __host__ PdfNodeState::PdfNodeState(PdfGraphEvaluator* evaluator,
   , isEvaluated(false)
   , isRecursiveEvaluated(false)
   , evaluatedComponents(0)
-  , parent(parent) {
+  , parent(parent)
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+  , futureVectorPtr(0)
+#endif
+{
+
+
+
 }
 
 __host__ void PdfNodeState::resetState() {
@@ -44,17 +56,12 @@ __host__ void PdfNodeState::addChildren(PdfNodeState* state) {
 }
 
 __host__ void PdfNodeState::evaluate() {
-  //std::cout << "EVAL " << pdf->getName() << std::endl;
-
   if (isEvaluated) {
     return;
   }
 
 #if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
-  std::pair<PdfNodeState*, std::vector<bulk_::future<void> > > pair;
-  pair.first = this;
-  pdf->preEvaluateComponents(pair.second);
-  evaluator->addFutures(pair);
+  pdf->preEvaluateComponents(*futureVectorPtr);
 #endif
 }
 
@@ -107,16 +114,18 @@ __host__ void PdfGraphEvaluator::syncAndFlush() {
 #if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
   for (size_t i = 0; i < futurePool.size(); ++i) {
 
-    std::pair<PdfNodeState*, std::vector<bulk_::future<void> > >& element = futurePool[i];
+    std::pair<PdfNodeState*, std::vector<bulk_::future<void> >* >& element = futurePool[i];
 
     PdfNodeState* pdfState = element.first;
-    for (size_t j = 0; j < element.second.size(); ++j) {
-      element.second[j].wait();
-      pdfState->notifyParentOfEvaluated();
+
+    for (size_t j = 0; j < element.second->size(); ++j) {
+      if ((*element.second)[j].valid()) {
+        (*element.second)[j].wait();
+        //pdfState->notifyParentOfEvaluated();
+      }
     }
-    pdfState->setEvaluated(true);
+    element.second->clear();
   }
-  futurePool.clear();
 #endif
 }
 
@@ -126,8 +135,12 @@ __host__ void PdfGraphEvaluator::analyzeAndFlatten() {
 
   int currentDepth = 0;
 
+  flattenedGraph.push_back(new SyncOperation(this));
   flattenedGraph.push_back(rootNode);
   flattenedGraph.push_back(new SyncOperation(this));
+
+  std::vector<PdfNodeState*> states;
+  states.push_back(rootNode);
 
   while (!nodes.empty()) {
     std::pair<int, PdfNodeState*> nodeTuple = nodes.front();
@@ -135,13 +148,15 @@ __host__ void PdfGraphEvaluator::analyzeAndFlatten() {
     PdfNodeState* node = nodeTuple.second;
     nodes.pop();
 
-    if (currentDepth != newDepth && !nodes.empty()) {
+    std::cout << "visiting " << node->getPdf()->getName() << std::endl;
+    if (currentDepth != newDepth && !nodes.empty() && node->hasChildren()) {
       flattenedGraph.push_back(new SyncOperation(this));
     }
 
     if (std::find(flattenedGraph.begin(), flattenedGraph.end(), node) == flattenedGraph.end() &&
         node->hasChildren()) {
       flattenedGraph.push_back(node);
+      states.push_back(node);
     }
 
     std::vector<PdfNodeState*> children = node->getChildren();
@@ -152,6 +167,7 @@ __host__ void PdfGraphEvaluator::analyzeAndFlatten() {
         if (child->hasChildren()) {
           nodes.push(std::pair<int, PdfNodeState*>(newDepth + 1, child));
           flattenedGraph.push_back(child);
+          states.push_back(child);
         }
       }
     }
@@ -164,6 +180,15 @@ __host__ void PdfGraphEvaluator::analyzeAndFlatten() {
   for (; it != flattenedGraph.rend(); ++it) {
     std::cout << (*it)->getDescription() << std::endl;
   }
+
+  std::vector<PdfNodeState*>::reverse_iterator statesRit = states.rbegin();
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+  for (; statesRit != states.rend(); ++statesRit) {
+    std::vector<bulk_::future<void> > * vect = new std::vector<bulk_::future<void> >();
+    (*statesRit)->setFutureVectorPointer(vect);
+    futurePool.push_back(std::pair<PdfNodeState*, std::vector<bulk_::future<void> >* >(*statesRit, vect));
+  }
+#endif
 }
 
 __host__ void PdfGraphEvaluator::checkAffectedSubGraph() {
@@ -179,6 +204,5 @@ __host__ SyncOperation::SyncOperation(PdfGraphEvaluator* evaluator)
 }
 
 __host__ void SyncOperation::evaluate() {
-  //std::cout << "SYNC " << std::endl;
   evaluator->syncAndFlush();
 }
