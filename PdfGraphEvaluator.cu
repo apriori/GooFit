@@ -54,6 +54,7 @@ __host__ void PdfNodeState::evaluate() {
   std::pair<PdfNodeState*, std::vector<bulk_::future<void> > > pair;
   pair.first = this;
   pdf->preEvaluateComponents(pair.second);
+  evaluator->addFutures(pair);
 #endif
 }
 
@@ -123,8 +124,6 @@ __host__ void PdfGraphEvaluator::analyzeAndFlatten() {
   std::queue<std::pair<int, PdfNodeState*> > nodes;
   nodes.push(std::pair<int, PdfNodeState*>(0, rootNode));
 
-  std::vector<PdfNodeState*> visitedNodes;
-
   int currentDepth = 0;
 
   flattenedGraph.push_back(rootNode);
@@ -136,18 +135,12 @@ __host__ void PdfGraphEvaluator::analyzeAndFlatten() {
     PdfNodeState* node = nodeTuple.second;
     nodes.pop();
 
-    if (std::find(visitedNodes.begin(), visitedNodes.end(), node) != visitedNodes.end()) {
-      std::cout << "skipping " << node->getDescription() << std::endl;
-      continue;
-    }
-
-    if (currentDepth != newDepth) {
+    if (currentDepth != newDepth && !nodes.empty()) {
       flattenedGraph.push_back(new SyncOperation(this));
     }
 
-    visitedNodes.push_back(node);
-
-    if (std::find(flattenedGraph.begin(), flattenedGraph.end(), node) == flattenedGraph.end()) {
+    if (std::find(flattenedGraph.begin(), flattenedGraph.end(), node) == flattenedGraph.end() &&
+        node->hasChildren()) {
       flattenedGraph.push_back(node);
     }
 
@@ -156,8 +149,10 @@ __host__ void PdfGraphEvaluator::analyzeAndFlatten() {
     if (children.size() > 0) {
       for (size_t i = 0; i < children.size(); ++i) {
         PdfNodeState* child = children[i];
-        nodes.push(std::pair<int, PdfNodeState*>(newDepth + 1, child));
-        flattenedGraph.push_back(child);
+        if (child->hasChildren()) {
+          nodes.push(std::pair<int, PdfNodeState*>(newDepth + 1, child));
+          flattenedGraph.push_back(child);
+        }
       }
     }
     currentDepth = newDepth;

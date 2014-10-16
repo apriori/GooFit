@@ -38,6 +38,7 @@ public:
   __host__ void notifyParentOfEvaluated();
   __host__ void setEvaluated(bool done) { isEvaluated = done; }
   __host__ virtual std::string getDescription() const { return "PdfEvaluation: " + pdf->getName(); }
+  __host__ bool hasChildren() const { return !children.empty(); }
 
 private:
   PdfGraphEvaluator* evaluator;
@@ -68,6 +69,12 @@ public:
   __host__ void evaluate();
   __host__ void syncAndFlush();
 
+#if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+  void addFutures(const std::pair<PdfNodeState*, std::vector<bulk_::future<void> > >& pair) {
+    futurePool.push_back(pair);
+  }
+#endif
+
 private:
   __host__ void analyzeAndFlatten();
   __host__ void constructFromPdf(PdfBase* pdf,
@@ -78,6 +85,7 @@ private:
   PdfNodeState* rootNode;
   std::vector<NodeEvaluation*> flattenedGraph;
 #if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
+
   std::vector< std::pair<PdfNodeState*, std::vector<bulk_::future<void> > > > futurePool;
 #endif
 };
