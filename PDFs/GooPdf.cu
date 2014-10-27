@@ -332,10 +332,6 @@ __host__ void GooPdf::evaluateAtPoints (Variable* var, std::vector<fptype>& res,
 
   size_t chunkSize = tempdata.numEvents() / var->numbins;
 
-  std::cout << "observables size " << observables.size() << std::endl;
-
-  std::cout << "generated pseudo-events " << tempdata.numEvents() << std::endl;
-
   //chunked loop
   for (size_t i = 0; i < h_results.size(); i+=chunkSize) {
     double intermediateSum = 0;

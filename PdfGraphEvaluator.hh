@@ -42,8 +42,9 @@ public:
 #if THRUST_DEVICE_SYSTEM!=THRUST_DEVICE_BACKEND_OMP
   __host__ void setFutureVectorPointer(std::vector<bulk_::future<void> > * futureVectorPtr) {
     this->futureVectorPtr = futureVectorPtr;
-#endif
   }
+#endif
+
 
 private:
   PdfGraphEvaluator* evaluator;
